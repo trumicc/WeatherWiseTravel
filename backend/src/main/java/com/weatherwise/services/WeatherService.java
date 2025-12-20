@@ -6,17 +6,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
 
-public class WeatherServices {
+public class WeatherService {
     private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather";
     private String apiKey;
 
 
 
-    public WeatherServices(String apiKey) {
+    public WeatherService(String apiKey) {
         this.apiKey = apiKey;
     }
 
-    // main method som andra kallar för väder data
+    // main method som hämtar väderdata för en stad
     public Weather getWeather(String city) {
 
         String url = buildUrl(city);

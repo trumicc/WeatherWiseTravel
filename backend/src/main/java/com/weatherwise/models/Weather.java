@@ -20,7 +20,12 @@ public class Weather {
         this.windSpeed = windSpeed;
     }
     
-    public String getCity() { return city; }
+    public String getCity() {
+
+
+
+        return city;
+    }
     public void setCity(String city) { this.city = city; }
     
     public double getTemperature() { return temperature; }

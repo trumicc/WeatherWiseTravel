@@ -1,11 +1,35 @@
 package com.weatherwise;
 
+import com.weatherwise.models.Weather;
+import com.weatherwise.services.WeatherService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+
+import java.sql.SQLOutput;
+import java.util.Properties;
 
 public class Main {
     
     public static void main(String[] args) {
+
+        Properties props = new Properties();
+        try {
+            props.load(Main.class.getClassLoader().getResourceAsStream("config.properties"));
+            String apiKey = props.getProperty("OPENWEATHER_API_KEY");
+
+            WeatherService ws = new WeatherService(apiKey);
+            Weather weather= ws.getWeather("Stockholm");
+
+            if (weather != null) {
+                System.out.println("Weather in " + weather.getCity() + ": " + weather.getTemperature() + "°C, " + weather.getCondition());
+            } else {
+                System.out.println("Failed to retrieve weather data.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         Javalin app = Javalin.create(config -> {
             // Allow CORS
             config.plugins.enableCors(cors -> {
@@ -25,12 +49,14 @@ public class Main {
         app.get("/api/v1/test", ctx -> {
             ctx.json(new Response("Test", "1.0", "Works!"));
         });
-        
+
         // Main endpoints - TODO: implement these
         app.get("/api/v1/recommendations", ctx -> handleRecommendations(ctx));
         app.get("/api/v1/weather/{city}", ctx -> handleWeather(ctx));
         app.get("/api/v1/activities", ctx -> handleActivities(ctx));
-        
+
+
+
         app.start(7000);
         System.out.println("Server started on port 7000");
     }
