@@ -1,11 +1,14 @@
 package com.weatherwise;
 
+import com.weatherwise.models.Activity;
 import com.weatherwise.models.Weather;
+import com.weatherwise.services.LocationService;
 import com.weatherwise.services.WeatherService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
 import java.sql.SQLOutput;
+import java.util.List;
 import java.util.Properties;
 
 public class Main {
@@ -21,7 +24,7 @@ public class Main {
             Weather weather= ws.getWeather("Stockholm");
 
             if (weather != null) {
-                System.out.println("Weather in " + weather.getCity() + ": " + weather.getTemperature() + "°C, " + weather.getCondition());
+                System.out.println("Weather in " + weather.getCity() + ": " + weather.getTemperature() + "°C, " + weather.getCondition() + ". Det är: " + weather.getDescription() + ", luftfuktighet: " + weather.getHumidity() + "%, vindhastighet: " + weather.getWindSpeed() + " m/s");
             } else {
                 System.out.println("Failed to retrieve weather data.");
             }
@@ -29,6 +32,10 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        LocationService ls = new LocationService();
+        List<Activity> activities = ls.getActivities("Stockholm");
+        System.out.println("Hittade " + activities.size() + " aktiviteter i Stockholm.");
 
         Javalin app = Javalin.create(config -> {
             // Allow CORS

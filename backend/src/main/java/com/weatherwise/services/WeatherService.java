@@ -18,17 +18,18 @@ public class WeatherService {
 
     // main method som hämtar väderdata för en stad
     public Weather getWeather(String city) {
-
+        // URL med city och key;
         String url = buildUrl(city);
         System.out.println("URL: " + url);
-        // TODO: koda: URL med city och key; HTTP request; parse JSON response; skapa och returnera Weather object
 
+        // HTTP request
         HttpResponse<String> response = Unirest.get(url).asString();
         if (response.getStatus() != 200) {
             System.out.println("Error: " + response.getStatus() + "body" + response.getBody());
             return null;
         }
 
+        // parse JSON response
         String json = response.getBody();
 
         try {
@@ -42,6 +43,7 @@ public class WeatherService {
             int humidity = root.path("main").path("humidity").asInt();
             double windSpeed = root.path("wind").path("speed").asDouble();
 
+            // skapa och returnera Weather object
             Weather weather = new Weather(cityName, temperature, condition, description, humidity, windSpeed);
             return weather;
 
