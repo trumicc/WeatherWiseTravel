@@ -1,10 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
     <meta charset="UTF-8">
-    <title>WeatherWise</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vad ska jag göra idag?</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<header class="header">
+    <h1>Vad ska jag göra idag?</h1>
+    <p class="location"> Malmö - <span id="date">Idag</span></p>
+</header>
+
+<main class="container">
+
+    <!-- Vädersektion -->
+    <section class="weather">
+        <h2>Dagens väder</h2>
+        <div class="weather-card">
+            <div class="weather-info">
+                <p class="temp">12°C</p>
+                <p class="description">Regnigt</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Preferenser -->
+    <section class="preferences">
+        <h2>Anpassa rekommendationer</h2>
+
+        <div class="preference-group">
+            <label>Miljö</label>
+            <select>
+                <option>Utomhus</option>
+                <option>Inomhus</option>
+                <option>Både och</option>
+            </select>
+        </div>
+
+        <div class="preference-group">
+            <label>Tempo</label>
+            <select>
+                <option>Lugn</option>
+                <option>Aktiv</option>
+            </select>
+        </div>
+
+        <div class="preference-group">
+            <label>Sällskap</label>
+            <select>
+                <option>Själv</option>
+                <option>Med andra</option>
+            </select>
+        </div>
+
+        <button class="btn">Visa rekommendationer</button>
+    </section>
+
+   
+</main>
+
+<footer class="footer">
+    <p> 2025 - Väderbaserade rekommendationer</p>
+</footer>
 
 </body>
 </html>
