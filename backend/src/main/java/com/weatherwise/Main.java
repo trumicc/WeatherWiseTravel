@@ -7,34 +7,28 @@ import com.weatherwise.services.WeatherService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
+import java.io.IOException;
 import java.sql.SQLOutput;
 import java.util.List;
 import java.util.Properties;
 
 public class Main {
+
+    private static WeatherService weatherService;
+    private static LocationService locationService;
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         Properties props = new Properties();
-        try {
-            props.load(Main.class.getClassLoader().getResourceAsStream("config.properties"));
-            String apiKey = props.getProperty("OPENWEATHER_API_KEY");
+        props.load(Main.class.getClassLoader().getResourceAsStream("config.properties"));
+        String apiKey = props.getProperty("OPENWEATHER_API_KEY");
 
-            WeatherService ws = new WeatherService(apiKey);
-            Weather weather= ws.getWeather("Stockholm");
 
-            if (weather != null) {
-                System.out.println("Weather in " + weather.getCity() + ": " + weather.getTemperature() + "°C, " + weather.getCondition() + ". Det är: " + weather.getDescription() + ", luftfuktighet: " + weather.getHumidity() + "%, vindhastighet: " + weather.getWindSpeed() + " m/s");
-            } else {
-                System.out.println("Failed to retrieve weather data.");
-            }
+        weatherService = new WeatherService(apiKey);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        locationService = new LocationService();
 
-        LocationService ls = new LocationService();
-        List<Activity> activities = ls.getActivities("Stockholm");
+        List<Activity> activities = locationService.getActivities("Stockholm");
         System.out.println("Hittade " + activities.size() + " aktiviteter i Stockholm.");
 
         Javalin app = Javalin.create(config -> {
@@ -57,10 +51,15 @@ public class Main {
             ctx.json(new Response("Test", "1.0", "Works!"));
         });
 
+
+        // GET /api/v1/weather/{city} return the weather for a city
+        app.get("/api/v1/weather/{city}", ctx -> handleWeather(ctx));
+
+        // GET /api/v1/activities?city={city} return the activities in a city
+        app.get("/api/v1/activities", ctx -> handleActivities(ctx));
+
         // Main endpoints - TODO: implement these
         app.get("/api/v1/recommendations", ctx -> handleRecommendations(ctx));
-        app.get("/api/v1/weather/{city}", ctx -> handleWeather(ctx));
-        app.get("/api/v1/activities", ctx -> handleActivities(ctx));
 
 
 
@@ -79,23 +78,62 @@ public class Main {
         
         ctx.json(new Response("Recommendations", "1.0", "TODO: implement"));
     }
-    
-    // TODO: implement
+
+
+    /**
+     * GET /api/v1/weather/{city}
+     * returns the weather for a city
+     * @param ctx
+     */
     private static void handleWeather(Context ctx) {
         String city = ctx.pathParam("city");
-        ctx.json(new Response("Weather for " + city, "1.0", "TODO: implement"));
-    }
-    
-    // TODO: implement
-    private static void handleActivities(Context ctx) {
-        String city = ctx.queryParam("city");
-        
+
         if (city == null || city.isEmpty()) {
             ctx.status(400).json(new ErrorResponse("Missing city parameter"));
             return;
         }
-        
-        ctx.json(new Response("Activities for " + city, "1.0", "TODO: implement"));
+
+        try {
+            Weather weather = weatherService.getWeather(city);
+
+            if (weather != null) {
+                ctx.status(200).json(weather);
+            } else {
+                ctx.status(404).json(new ErrorResponse("Weather data not found "));
+            }
+        } catch (Exception e) {
+            System.out.println("Error in handelWeather " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(new ErrorResponse("server error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/v1/activities?city={city}
+     * return activities in a city
+     * @param ctx
+     */
+    private static void handleActivities(Context ctx) {
+        String city = ctx.queryParam("city");
+
+        if (city == null || city.isEmpty()) {
+            ctx.status(400).json(new ErrorResponse("Missing city parameter"));
+            return;
+        }
+
+        try {
+            List<Activity> activities = locationService.getActivities(city);
+
+            if(activities != null && !activities.isEmpty()) {
+                ctx.status(200).json(activities);
+            } else {
+                ctx.status(404).json(new ErrorResponse("Activities data not found "));
+            }
+        } catch (Exception e) {
+            System.out.println("Error in handleActivities " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(new ErrorResponse("server error: " + e.getMessage()));
+        }
     }
     
     static class Response {
