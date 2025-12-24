@@ -1,6 +1,7 @@
 package com.weatherwise;
 
 import com.weatherwise.models.Activity;
+import com.weatherwise.models.Recommendation;
 import com.weatherwise.models.Weather;
 import com.weatherwise.services.LocationService;
 import com.weatherwise.services.WeatherService;
@@ -9,6 +10,7 @@ import io.javalin.http.Context;
 
 import java.io.IOException;
 import java.sql.SQLOutput;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -75,8 +77,91 @@ public class Main {
             ctx.status(400).json(new ErrorResponse("Missing city parameter"));
             return;
         }
-        
-        ctx.json(new Response("Recommendations", "1.0", "TODO: implement"));
+
+        try {
+            // Fetch weather
+            Weather weather = weatherService.getWeather(city);
+            if (weather == null) {
+                ctx.status(404).json(new ErrorResponse("Weather NOT FOUND for city: " + city));
+                return;
+        }
+
+            // Fetch activities
+            List<Activity> activities = locationService.getActivities(city);
+            if (activities == null || activities.isEmpty()) {
+                ctx.status(404).json(new ErrorResponse("Activities NOT FOUND for city: " + city));
+                return;
+            }
+
+            List<Recommendation> recommendations = new ArrayList<>(); // Lista som ska fyllas med reakomadtioner
+
+            // V1 - Algoritm för att skapa rekommendationer baserat på väder och aktiviteter
+
+            for (Activity activity : activities) {
+                int score = 50; // vi använder en scala 0-100 och alla börjar i mitten
+                String reason = ""; // socre ska följa med nån form av resonemang
+
+                if (weather.getTemperature() < 10) { // basic kalt väder
+                    if (activity.isIndoor()) {
+                        score += 25; // ska testas, vi borjar så - lättare och räkna
+                        reason = " Staying indoors may be more comfortable";
+                    } else {
+                        score -= 10;
+                        reason = " It's quite cold outside";
+                    }
+
+                } else if (weather.getTemperature() > 20) { // basic varm väder
+                    if (!activity.isIndoor()) {
+                        score += 20;
+                        reason = " Enjoy the warm weather outdoors";
+                    } else {
+                        score -= 10;
+                        reason = " It's a nice day outside";
+                    }
+                } else {
+                    reason = " Weather is nice for most activities";
+                }
+
+                // Regn och snö påverkan
+                if (weather.getCondition().equals("Rain") || weather.getCondition().equals("Snow")) {
+                    if (activity.isIndoor()) {
+                        score += 30;
+                        reason = "Indoors is more preferable in with conditions like this";
+                    } else {
+                        score -= 30;
+                        reason = "Outdoor activities may be less enjoyable in this weather";
+                    }
+                }
+
+                // Vind påverkan
+                if (weather.getWindSpeed() > 25) { // stark vind enlight googel
+                    if (!activity.isIndoor()) {
+                        score -= 20;
+                        reason = "You must exceed minimum weight requirements for strong wind conditions";
+                    }
+                }
+                // Begränsa score till 0-100
+                if (score > 100) score = 100;
+                if (score < 0) score = 0;
+
+                Recommendation rec = new Recommendation(activity, score, reason);
+                recommendations.add(rec);
+            }
+            // Sortera rekommendationer baserat på score
+            recommendations.sort((r1, r2) -> Integer.compare(r2.getScore(), r1.getScore()));
+            // Returnera topp 10
+            if (recommendations.size() > 10) {
+                recommendations = recommendations.subList(0, 10);
+            }
+            ctx.status(200).json(recommendations);
+
+        } catch (Exception e) {
+            System.out.println("Error in handleRecommendations " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(new ErrorResponse("server error: " + e.getMessage()));
+
+            }
+
     }
 
 
