@@ -5,35 +5,61 @@ import kong.unirest.HttpResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
-
+/**
+ * Weather Service class, calls the openWeathersAPI and returns the weather,
+ * temperature and wind speed.
+ */
 public class WeatherService {
     private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather";
     private String apiKey;
+    private final ObjectMapper mapper;
 
-
-
+    /**
+     * WeatherService constructor
+     * @param apiKey
+     */
     public WeatherService(String apiKey) {
         this.apiKey = apiKey;
+        this.mapper = new ObjectMapper();
     }
 
-    // main method som hämtar väderdata för en stad
+    /**
+     * main function that returns the weather for a specific city
+     * @param city
+     * @return returns a Weather object
+     */
     public Weather getWeather(String city) {
-        // URL med city och key;
-        String url = buildUrl(city);
-        System.out.println("URL: " + url);
-
-        // HTTP request
-        HttpResponse<String> response = Unirest.get(url).asString();
-        if (response.getStatus() != 200) {
-            System.out.println("Error: " + response.getStatus() + "body" + response.getBody());
+        if (city == null || city.trim().isEmpty()) {
+            System.out.println("Error: City name cannot be empty");
             return null;
         }
 
-        // parse JSON response
-        String json = response.getBody();
+        // generate a URL with city and key;
+        String url = buildUrl(city);
+        System.out.println("URL: " + url);
 
         try {
-            ObjectMapper mapper = new ObjectMapper();
+            HttpResponse<String> response = Unirest.get(url).asString();
+            if (response.getStatus() != 200) {
+                System.out.println("Error: " + response.getStatus() + " - " + response.getBody());
+                return null;
+            }
+            return parseWeatherResponse(response.getBody());
+
+        } catch (Exception e) {
+            System.out.println("Error fetching weather data: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * parse the json object to a Weather object
+     * @param json
+     * @return a weather object
+     */
+    private Weather parseWeatherResponse(String json) {
+        try {
             JsonNode root = mapper.readTree(json);
 
             String cityName = root.path("name").asText();
@@ -43,22 +69,21 @@ public class WeatherService {
             int humidity = root.path("main").path("humidity").asInt();
             double windSpeed = root.path("wind").path("speed").asDouble();
 
-            // skapa och returnera Weather object
-            Weather weather = new Weather(cityName, temperature, condition, description, humidity, windSpeed);
-            return weather;
-
+            return new Weather(cityName, temperature, condition, description, humidity, windSpeed);
         } catch (Exception e) {
+            System.out.println("Error parsing weather JSON: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
-
-
     }
 
+    /**
+     * this function generate a URL based on the APIKey and the given city
+     * @param city
+     * @return a URL with city
+     */
     private String buildUrl(String city) {
-        String url = API_URL + "?q=" + city + "&appid=" + apiKey + "&units=metric" + "&lang=sv";
-
-        return url;
+        return API_URL + "?q=" + city + "&appid=" + apiKey + "&units=metric" + "&lang=sv";
     }
 
 }

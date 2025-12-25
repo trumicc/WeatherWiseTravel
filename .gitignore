@@ -26,3 +26,4 @@ replay_pid*
 # API keys / config
 backend/src/main/resources/config.properties
 
+backend/target/
