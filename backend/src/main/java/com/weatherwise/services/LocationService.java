@@ -133,7 +133,7 @@ public class LocationService {
      * @return URL
      */
     private String buildSearchUrl(String city, String category) {
-        return String.format("%s?q=%s+%s&format=json&limit=%d",
+        return String.format("%s?q=%s+%s&format=json&limit=%d&countrycodes=se", // begrensa med Countrycode, gav mig Stockholm caffe i Nederland
                 NOMINATIM_URL, city, category, RESULTS_PER_CATEGORY);
     }
 
