@@ -69,7 +69,7 @@ public class Main {
         System.out.println("Server started on port 7000");
     }
     
-    // TODO: implement
+
     private static void handleRecommendations(Context ctx) {
         String city = ctx.queryParam("city");
         
@@ -95,7 +95,7 @@ public class Main {
 
             List<Recommendation> recommendations = new ArrayList<>(); // Lista som ska fyllas med reakomadtioner
 
-            // V1 - Algoritm för att skapa rekommendationer baserat på väder och aktiviteter
+            // V2 - Algoritm för att skapa rekommendationer baserat på väder och aktiviteter
 
             for (Activity activity : activities) {
                 int score = 50; // vi använder en scala 0-100 och alla börjar i mitten
@@ -140,6 +140,30 @@ public class Main {
                         reason = "You must exceed minimum weight requirements for strong wind conditions";
                     }
                 }
+
+                // Kanske  kolla Humidity
+                if (weather.getHumidity() > 80) {
+                    if (activity.isIndoor()) {
+                        score += 10;
+                        reason = "High humidity makes indoor activities more comfortable";
+                    }
+                }
+
+                // ha en reason för café
+                if (activity.getCategory().equals("Cafe")) {
+                    if (weather.getTemperature() < 10) { // eller annat temp
+                        score += 15;
+                        reason = "A warm beverage is perfect for cold weather";
+                    }
+                }
+                // samma för park
+                if (activity.getCategory().equals("Park")) {
+                    if (weather.getTemperature() > 15 && weather.getCondition().equals("Clear")) {
+                        score += 15;
+                        reason = "Great weather for enjoying the outdoors in the park";
+                    }
+                }
+
                 // Begränsa score till 0-100
                 if (score > 100) score = 100;
                 if (score < 0) score = 0;
