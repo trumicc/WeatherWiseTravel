@@ -18,6 +18,8 @@ public class LocationService {
     private static final String USER_AGENT = "WeatherWiseTravel/1.0 (student)";
     private static final int RESULTS_PER_CATEGORY = 10;
 
+    private static final double SEARCH_RADIUS_KM = 5.0;
+
     private final ObjectMapper mapper;
 
     /**
@@ -134,7 +136,75 @@ public class LocationService {
      */
     private String buildSearchUrl(String city, String category) {
         return String.format("%s?q=%s+%s&format=json&limit=%d&countrycodes=se", // begrensa med Countrycode, gav mig Stockholm caffe i Nederland
-                NOMINATIM_URL, city, category, RESULTS_PER_CATEGORY);
+                NOMINATIM_URL,
+                city,
+                category,
+                RESULTS_PER_CATEGORY);
     }
 
+    /**
+     * Fetch activities based on coordinates
+     * @param lat latitude
+     * @param lon longitude
+     * @return List activities near coordinates
+     */
+    public List<Activity> getActivitiesByCoordinates(double lat, double lon) {
+        List<Activity> activities = new ArrayList<>();
+
+        activities.addAll(searchCategoryByCoordinates(lat, lon, "museum"));
+        activities.addAll(searchCategoryByCoordinates(lat, lon, "cafe"));
+        activities.addAll(searchCategoryByCoordinates(lat, lon, "park"));
+        activities.addAll(searchCategoryByCoordinates(lat, lon, "restaurant"));
+
+        System.out.println("Found " + activities.size() + " activities near coordinates [" + lat + ", " + lon + "]");
+        return activities;
+    }
+
+    /**
+     * Search for activities by coordinates and category
+     * @param lat latitude
+     * @param lon longitude
+     * @param category category
+     * @return List with activities
+     */
+    private List<Activity> searchCategoryByCoordinates(double lat, double lon, String category) {
+        String url = buildSearchUrlByCoordinates(lat, lon, category);
+
+        try {
+            HttpResponse<String> response = Unirest.get(url).header("User-Agent", USER_AGENT).asString();
+
+            if (response.getStatus() != 200) {
+                System.out.println("API Error for " + category + ": " +
+                        response.getStatus() + " - " + response.getStatusText());
+                return new ArrayList<>();
+            }
+
+            return parseActivitiesResponse(response.getBody(), category);
+        } catch (Exception e) {
+            System.out.println("Error searching " + category + " by coordinates: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Build search URL by coordinates
+     * @param lat latitude
+     * @param lon longitude
+     * @param category category
+     * @return URL based coordinate
+     */
+    private String buildSearchUrlByCoordinates(double lat, double lon, String category) {
+        double radiusDegrees = SEARCH_RADIUS_KM / 111.0;
+
+        double minLon = lon - radiusDegrees;
+        double maxLon = lon + radiusDegrees;
+        double minLat = lat - radiusDegrees;
+        double maxLat = lat + radiusDegrees;
+
+        return NOMINATIM_URL + "?q=" + category +
+                "&format=json&limit=" + RESULTS_PER_CATEGORY +
+                "&viewbox=" + minLon + "," + maxLat + "," + maxLon + "," + minLat +
+                "&bounded=1&countrycodes=se";
+    }
 }

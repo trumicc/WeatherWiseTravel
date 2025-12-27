@@ -86,4 +86,40 @@ public class WeatherService {
         return API_URL + "?q=" + city + "&appid=" + apiKey + "&units=metric" + "&lang=sv";
     }
 
+    /**
+     * Fetch weather based on coordinates
+     * @param lat latitude
+     * @param lon longitude
+     * @return Weather on coordinates
+     */
+    public Weather getWeatherByCoordinates(double lat, double lon) {
+
+        String url = buildUrlByCoordinates(lat, lon);
+        System.out.println("URL: " + url);
+
+        try {
+            HttpResponse<String> response = Unirest.get(url).asString();
+            if (response.getStatus() != 200) {
+                System.out.println("Error: " + response.getStatus() + " - " + response.getBody());
+                return null;
+            }
+
+            return parseWeatherResponse(response.getBody());
+        } catch (Exception e) {
+            System.out.println("Error fetching weather data: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Generate URL based on coordinates
+     * @param lat latitude
+     * @param lon longitude
+     * @return url
+     */
+    private String buildUrlByCoordinates(double lat, double lon) {
+        return API_URL + "?lat=" + lat + "&lon=" + lon + "&appid=" + apiKey + "&units=metric" + "&lang=sv";
+    }
+
 }

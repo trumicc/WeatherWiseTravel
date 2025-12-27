@@ -4,6 +4,7 @@ import com.weatherwise.models.Activity;
 import com.weatherwise.models.Recommendation;
 import com.weatherwise.models.Weather;
 import com.weatherwise.services.LocationService;
+import com.weatherwise.services.RecommendationEngine;
 import com.weatherwise.services.WeatherService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -18,6 +19,7 @@ public class Main {
 
     private static WeatherService weatherService;
     private static LocationService locationService;
+    private static RecommendationEngine recommendationEngine;
     
     public static void main(String[] args) throws IOException {
 
@@ -29,6 +31,8 @@ public class Main {
         weatherService = new WeatherService(apiKey);
 
         locationService = new LocationService();
+
+        recommendationEngine = new RecommendationEngine();
 
         List<Activity> activities = locationService.getActivities("Stockholm");
         System.out.println("Hittade " + activities.size() + " aktiviteter i Stockholm.");
@@ -53,6 +57,14 @@ public class Main {
             ctx.json(new Response("Test", "1.0", "Works!"));
         });
 
+        // GET /api/v1/weather/coordinates?lat={lat}&lon={lon}
+        app.get("/api/v1/weather/coordinates", ctx -> handleWeatherByCoordinates(ctx));
+
+        // GET /api/v1/activities/coordinates?lat={lat}&lon={lon}
+        app.get("/api/v1/activities/coordinates", ctx -> handleActivitiesByCoordinates(ctx));
+
+        // GET /api/v1/recommendations/coordinates?lat={lat}&lon={lon}
+        app.get("/api/v1/recommendations/coordinates", ctx -> handleRecommendationsByCoordinates(ctx));
 
         // GET /api/v1/weather/{city} return the weather for a city
         app.get("/api/v1/weather/{city}", ctx -> handleWeather(ctx));
@@ -60,7 +72,7 @@ public class Main {
         // GET /api/v1/activities?city={city} return the activities in a city
         app.get("/api/v1/activities", ctx -> handleActivities(ctx));
 
-        // Main endpoints - TODO: implement these
+        // GET /api/v1/recommendations/?city={city}
         app.get("/api/v1/recommendations", ctx -> handleRecommendations(ctx));
 
 
@@ -68,8 +80,13 @@ public class Main {
         app.start(7000);
         System.out.println("Server started on port 7000");
     }
-    
 
+
+    /**
+     * GET /api/v1/recommendations/?city={city}
+     * returns the recommendation activities based on the weather in given city
+     * @param ctx
+     */
     private static void handleRecommendations(Context ctx) {
         String city = ctx.queryParam("city");
         
@@ -84,7 +101,7 @@ public class Main {
             if (weather == null) {
                 ctx.status(404).json(new ErrorResponse("Weather NOT FOUND for city: " + city));
                 return;
-        }
+            }
 
             // Fetch activities
             List<Activity> activities = locationService.getActivities(city);
@@ -93,98 +110,18 @@ public class Main {
                 return;
             }
 
-            List<Recommendation> recommendations = new ArrayList<>(); // Lista som ska fyllas med reakomadtioner
-
-            // V2 - Algoritm för att skapa rekommendationer baserat på väder och aktiviteter
-
-            for (Activity activity : activities) {
-                int score = 50; // vi använder en scala 0-100 och alla börjar i mitten
-                String reason = ""; // socre ska följa med nån form av resonemang
-
-                if (weather.getTemperature() < 10) { // basic kalt väder
-                    if (activity.isIndoor()) {
-                        score += 25; // ska testas, vi borjar så - lättare och räkna
-                        reason = " Staying indoors may be more comfortable";
-                    } else {
-                        score -= 10;
-                        reason = " It's quite cold outside";
-                    }
-
-                } else if (weather.getTemperature() > 20) { // basic varm väder
-                    if (!activity.isIndoor()) {
-                        score += 20;
-                        reason = " Enjoy the warm weather outdoors";
-                    } else {
-                        score -= 10;
-                        reason = " It's a nice day outside";
-                    }
-                } else {
-                    reason = " Weather is nice for most activities";
-                }
-
-                // Regn och snö påverkan
-                if (weather.getCondition().equals("Rain") || weather.getCondition().equals("Snow")) {
-                    if (activity.isIndoor()) {
-                        score += 30;
-                        reason = "Indoors is more preferable in with conditions like this";
-                    } else {
-                        score -= 30;
-                        reason = "Outdoor activities may be less enjoyable in this weather";
-                    }
-                }
-
-                // Vind påverkan
-                if (weather.getWindSpeed() > 25) { // stark vind enlight googel
-                    if (!activity.isIndoor()) {
-                        score -= 20;
-                        reason = "You must exceed minimum weight requirements for strong wind conditions";
-                    }
-                }
-
-                // Kanske  kolla Humidity
-                if (weather.getHumidity() > 80) {
-                    if (activity.isIndoor()) {
-                        score += 10;
-                        reason = "High humidity makes indoor activities more comfortable";
-                    }
-                }
-
-                // ha en reason för café
-                if (activity.getCategory().equals("Cafe")) {
-                    if (weather.getTemperature() < 10) { // eller annat temp
-                        score += 15;
-                        reason = "A warm beverage is perfect for cold weather";
-                    }
-                }
-                // samma för park
-                if (activity.getCategory().equals("Park")) {
-                    if (weather.getTemperature() > 15 && weather.getCondition().equals("Clear")) {
-                        score += 15;
-                        reason = "Great weather for enjoying the outdoors in the park";
-                    }
-                }
-
-                // Begränsa score till 0-100
-                if (score > 100) score = 100;
-                if (score < 0) score = 0;
-
-                Recommendation rec = new Recommendation(activity, score, reason);
-                recommendations.add(rec);
+            List<Recommendation> recommendations = recommendationEngine.getRecommendations(weather, activities);
+            if (recommendations != null && !recommendations.isEmpty()) {
+                ctx.status(200).json(recommendations);
+            } else {
+                ctx.status(404).json(new ErrorResponse("Recommendation data not found "));
             }
-            // Sortera rekommendationer baserat på score
-            recommendations.sort((r1, r2) -> Integer.compare(r2.getScore(), r1.getScore()));
-            // Returnera topp 10
-            if (recommendations.size() > 10) {
-                recommendations = recommendations.subList(0, 10);
-            }
-            ctx.status(200).json(recommendations);
 
         } catch (Exception e) {
             System.out.println("Error in handleRecommendations " + e.getMessage());
             e.printStackTrace();
             ctx.status(500).json(new ErrorResponse("server error: " + e.getMessage()));
-
-            }
+        }
 
     }
 
@@ -242,6 +179,139 @@ public class Main {
             System.out.println("Error in handleActivities " + e.getMessage());
             e.printStackTrace();
             ctx.status(500).json(new ErrorResponse("server error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/v1/weather/coordinates?lat={lat}&lon={lon}
+     * return the weather for a coordinate
+     * @param ctx
+     */
+    private static void handleWeatherByCoordinates(Context ctx) {
+        String latStr = ctx.queryParam("lat");
+        String lonStr = ctx.queryParam("lon");
+
+        if (latStr == null || lonStr == null) {
+            ctx.status(400).json(new ErrorResponse("Missing lat or lon parameter"));
+            return;
+        }
+
+        try {
+            double lat = Double.parseDouble(latStr);
+            double lon = Double.parseDouble(lonStr);
+
+            // Validate coordinates
+            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                ctx.status(400).json(new ErrorResponse("Invalid coordinates"));
+                return;
+            }
+
+            Weather weather = weatherService.getWeatherByCoordinates(lat, lon);
+
+            if (weather != null) {
+                ctx.status(200).json(weather);
+            } else {
+                ctx.status(404).json(new ErrorResponse("Weather data not found"));
+            }
+        } catch (NumberFormatException e) {
+            ctx.status(400).json(new ErrorResponse("Invalid coordinate format"));
+        } catch (Exception e) {
+            System.out.println("Error in handleWeatherByCoordinates: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(new ErrorResponse("Server error: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/v1/activities/coordinates?lat={lat}&lon={lon}
+     * returns activities for a coordinate
+     * @param ctx
+     */
+    private static void handleActivitiesByCoordinates(Context ctx) {
+        String latStr = ctx.queryParam("lat");
+        String lonStr = ctx.queryParam("lon");
+
+        if (latStr == null || lonStr == null) {
+            ctx.status(400).json(new ErrorResponse("Missing lat or lon parameter"));
+            return;
+        }
+
+        try {
+            double lat = Double.parseDouble(latStr);
+            double lon = Double.parseDouble(lonStr);
+
+            // Validate coordinates
+            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                ctx.status(400).json(new ErrorResponse("Invalid coordinates"));
+                return;
+            }
+
+            List<Activity> activities = locationService.getActivitiesByCoordinates(lat, lon);
+
+            if(activities != null && !activities.isEmpty()) {
+                ctx.status(200).json(activities);
+            } else {
+                ctx.status(404).json(new ErrorResponse("Activities data not found"));
+            }
+        } catch (NumberFormatException e) {
+            ctx.status(400).json(new ErrorResponse("Invalid coordinate format"));
+        } catch (Exception e) {
+            System.out.println("Error in handleActivitiesByCoordinates: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(new ErrorResponse("Server error: " + e.getMessage()));
+        }
+    }
+
+
+    /**
+     * GET /api/v1/recommendations/coordinates?lat={lat}&lon={lon}
+     * returns the recommended activities based on the weather in given coordinate
+     * @param ctx
+     */
+    private static void handleRecommendationsByCoordinates(Context ctx) {
+        String latStr = ctx.queryParam("lat");
+        String lonStr = ctx.queryParam("lon");
+
+        if (latStr == null || lonStr == null) {
+            ctx.status(400).json(new ErrorResponse("Missing lat or lon parameter"));
+            return;
+        }
+
+        try {
+            double lat = Double.parseDouble(latStr);
+            double lon = Double.parseDouble(lonStr);
+
+            // Validate coordinates
+            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+                ctx.status(400).json(new ErrorResponse("Invalid coordinates"));
+                return;
+            }
+
+            // Fetch weather by coordinates
+            Weather weather = weatherService.getWeatherByCoordinates(lat, lon);
+            if (weather == null) {
+                ctx.status(404).json(new ErrorResponse("Weather NOT FOUND for coordinates: [" + lat + ", " + lon + "]"));
+                return;
+            }
+
+            // Fetch activities by coordinates
+            List<Activity> activities = locationService.getActivitiesByCoordinates(lat, lon);
+            if (activities == null || activities.isEmpty()) {
+                ctx.status(404).json(new ErrorResponse("Activities NOT FOUND near coordinates: [" + lat + ", " + lon + "]"));
+                return;
+            }
+
+            // Use RecommendationEngine
+            List<Recommendation> recommendations = recommendationEngine.getRecommendations(weather, activities);
+
+            ctx.status(200).json(recommendations);
+
+        } catch (NumberFormatException e) {
+            ctx.status(400).json(new ErrorResponse("Invalid coordinate format"));
+        } catch (Exception e) {
+            System.out.println("Error in handleRecommendationsByCoordinates: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(new ErrorResponse("Server error: " + e.getMessage()));
         }
     }
     
