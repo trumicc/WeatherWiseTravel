@@ -69,8 +69,8 @@ public class Main {
         app.get("/api/v1/activities", Main::handleActivities);
         app.get("/api/v1/recommendations", Main::handleRecommendations);
 
-        app.start(7001);
-        System.out.println("Server started on port 7001");
+        app.start(7000);
+        System.out.println("Server started on port 7000");
     }
 
     private static void handleRecommendations(Context ctx) {
