@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>WeatherWise Travel</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css"/>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" aria-label="WeatherWise Travel">
+        <span class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+            <path d="M7 14a4 4 0 1 1 1.2-7.82A5 5 0 0 1 18 9.2c1.66.3 3 1.77 3 3.55A3.25 3.25 0 0 1 17.75 16H8.5A3.5 3.5 0 0 1 7 14Z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M6 19h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-name">WeatherWise Travel</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="app-card">
+      <div id="weatherInfo" class="weather-line">
+        <div class="weather-pill">
+          <span class="weather-mini-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+              <path d="M7 14a4 4 0 1 1 1.2-7.82A5 5 0 0 1 18 9.2c1.66.3 3 1.77 3 3.55A3.25 3.25 0 0 1 17.75 16H8.5A3.5 3.5 0 0 1 7 14Z"
+                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </span>
+
+          <span class="city">Stockholm</span>
+          <span class="temp">--°C</span>
+          <span class="condition">--</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <section class="map-wrap">
+          <div id="map" aria-label="Karta"></div>
+        </section>
+
+        <aside class="panel">
+          <div class="search-row">
+            <input id="cityInput" type="text" placeholder="Sök stad..." autocomplete="off"/>
+            <button id="searchBtn" type="button">Sök</button>
+          </div>
+
+          <div id="loading" class="loading" style="display:none;">Laddar...</div>
+
+          <div id="recommendationsList" class="recs" aria-label="Rekommendationer"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
