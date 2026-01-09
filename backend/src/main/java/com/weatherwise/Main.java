@@ -38,14 +38,20 @@ public class Main {
         System.out.println("Hittade " + activities.size() + " aktiviteter i Stockholm.");
 
         Javalin app = Javalin.create(config -> {
-            // Allow CORS
             config.plugins.enableCors(cors -> {
                 cors.add(it -> it.anyHost());
             });
+        
+            config.staticFiles.add(staticFiles -> {
+                staticFiles.hostedPath = "/";
+                staticFiles.directory = "/public";
+                staticFiles.location = io.javalin.http.staticfiles.Location.CLASSPATH;
+            });
         });
         
+        
         // Basic test endpoint
-        app.get("/", ctx -> {
+        app.get("/api", ctx -> {
             ctx.json(new Response("WeatherWise Travel API", "1.0", "Running"));
         });
         

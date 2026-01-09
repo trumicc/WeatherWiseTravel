@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeatherWise Travel</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">⛅</span>
+      <span class="brand-title">WeatherWise Travel</span>
+    </div>
+
+    <div class="weather-pill" id="weatherInfo">
+      <span class="weather-emoji" id="weatherEmoji">⛅</span>
+      <span class="weather-city" id="weatherCity">Stockholm</span>
+      <span class="weather-temp" id="weatherTemp">--°C</span>
+      <span class="weather-desc" id="weatherDesc">Laddar...</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: map -->
+    <section class="map-card">
+      <div id="map"></div>
+    </section>
+
+    <!-- RIGHT: search + recommendations -->
+    <aside class="side">
+      <div class="search-row">
+        <input id="cityInput" type="text" placeholder="Sök stad..." value="Stockholm" />
+        <button id="searchBtn">Sök</button>
+      </div>
+
+      <div class="loading" id="loading" style="display:none;">
+        <div class="spinner"></div>
+        <div>Hämtar rekommendationer...</div>
+      </div>
+
+      <div class="recs" id="recommendationsList"></div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 – Väderbaserade rekommendationer</p>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- App JS -->
+  <script src="app.js"></script>
+</body>
+</html>
