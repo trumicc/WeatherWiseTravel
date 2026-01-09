@@ -3,60 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WeatherWise Travel</title>
+  <title>WeatherWiseTravel</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-  <!-- App CSS -->
+  <!-- Din CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-icon">⛅</span>
-      <span class="brand-title">WeatherWise Travel</span>
+<header class="header">
+  <h1>WeatherWiseTravel</h1>
+  <div class="weather-info" id="weatherInfo">
+    <span class="city">Stockholm</span>
+    <span class="temp">--°C</span>
+    <span class="condition">Laddar...</span>
+  </div>
+</header>
+
+<div class="main-container">
+  <div class="map-section">
+    <div id="map"></div>
+  </div>
+
+  <div class="recommendations-section">
+    <div class="search-box">
+      <input type="text" id="cityInput" placeholder="Sök stad..." value="Stockholm" />
+      <button id="searchBtn">🔍 Sök</button>
     </div>
 
-    <div class="weather-pill" id="weatherInfo">
-      <span class="weather-emoji" id="weatherEmoji">⛅</span>
-      <span class="weather-city" id="weatherCity">Stockholm</span>
-      <span class="weather-temp" id="weatherTemp">--°C</span>
-      <span class="weather-desc" id="weatherDesc">Laddar...</span>
+    <div class="loading" id="loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>Hämtar rekommendationer...</p>
     </div>
-  </header>
 
-  <main class="layout">
-    <!-- LEFT: map -->
-    <section class="map-card">
-      <div id="map"></div>
-    </section>
+    <div class="recommendations-list" id="recommendationsList"></div>
+  </div>
+</div>
 
-    <!-- RIGHT: search + recommendations -->
-    <aside class="side">
-      <div class="search-row">
-        <input id="cityInput" type="text" placeholder="Sök stad..." value="Stockholm" />
-        <button id="searchBtn">Sök</button>
-      </div>
+<footer class="footer">
+  <p>2025 - Väderbaserade rekommendationer</p>
+</footer>
 
-      <div class="loading" id="loading" style="display:none;">
-        <div class="spinner"></div>
-        <div>Hämtar rekommendationer...</div>
-      </div>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-      <div class="recs" id="recommendationsList"></div>
-    </aside>
-  </main>
-
-  <footer class="footer">
-    <p>© 2025 – Väderbaserade rekommendationer</p>
-  </footer>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- App JS -->
-  <script src="app.js"></script>
+<!-- Din JS -->
+<script src="app.js"></script>
 </body>
 </html>
