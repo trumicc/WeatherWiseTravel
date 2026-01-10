@@ -7,100 +7,212 @@ import com.weatherwise.models.Weather;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Recommendation class that calculate the score of every activity
+ */
 public class RecommendationEngine {
+
+    private static final double COLD_TEMP = 10.0;
+    private static final double WARM_TEMP = 20.0;
+
+    private static final double STRONG_WIND = 25.0;
+    private static final int HIGH_HUMIDITY = 80;
+
+    private static final int MAX_RESULTS = 10;
 
     public RecommendationEngine() {
 
     }
 
+    /**
+     * return recommendations based on the weather and activity
+     * @param weather weather object
+     * @param activities List of activity
+     * @return Recommendation Objects
+     */
     public List<Recommendation> getRecommendations(Weather weather, List<Activity> activities) {
 
-        List<Recommendation> recommendations = new ArrayList<>(); // Lista som ska fyllas med reakomadtioner
+        if (weather == null || activities == null || activities.isEmpty()) {
+            return new ArrayList<>();
+        }
 
-        // V2 - Algoritm för att skapa rekommendationer baserat på väder och aktiviteter
+        List<Recommendation> recommendations = new ArrayList<>();
 
         for (Activity activity : activities) {
-            int score = 50; // vi använder en scala 0-100 och alla börjar i mitten
-            String reason = ""; // socre ska följa med nån form av resonemang
-
-            if (weather.getTemperature() < 10) { // basic kalt väder
-                if (activity.isIndoor()) {
-                    score += 25; // ska testas, vi borjar så - lättare och räkna
-                    reason = " Staying indoors may be more comfortable";
-                } else {
-                    score -= 10;
-                    reason = " It's quite cold outside";
-                }
-
-            } else if (weather.getTemperature() > 20) { // basic varm väder
-                if (!activity.isIndoor()) {
-                    score += 20;
-                    reason = " Enjoy the warm weather outdoors";
-                } else {
-                    score -= 10;
-                    reason = " It's a nice day outside";
-                }
-            } else {
-                reason = " Weather is nice for most activities";
+            if (activity == null) {
+                continue;
             }
 
-            // Regn och snö påverkan
-            if (weather.getCondition().equals("Rain") || weather.getCondition().equals("Snow")) {
-                if (activity.isIndoor()) {
-                    score += 30;
-                    reason = "Indoors is more preferable in with conditions like this";
-                } else {
-                    score -= 30;
-                    reason = "Outdoor activities may be less enjoyable in this weather";
-                }
+            int score = 50;
+            List<String> reasons = new ArrayList<>();
+
+            score = checkTemperature(weather, activity, score, reasons);
+            score = checkCondition(weather, activity, score, reasons);
+            score = checkWind(weather, activity, score, reasons);
+            score = checkHumidity(weather, activity, score, reasons);
+            score = checkCategoryBonus(weather, activity, score, reasons);
+
+            if (score > 100) {
+                score = 100;
+            }
+            if (score < 0) {
+                score = 0;
             }
 
-            // Vind påverkan
-            if (weather.getWindSpeed() > 25) { // stark vind enlight googel
-                if (!activity.isIndoor()) {
-                    score -= 20;
-                    reason = "You must exceed minimum weight requirements for strong wind conditions";
-                }
-            }
+            String allReasons = buildString(reasons);
 
-            // Kanske  kolla Humidity
-            if (weather.getHumidity() > 80) {
-                if (activity.isIndoor()) {
-                    score += 10;
-                    reason = "High humidity makes indoor activities more comfortable";
-                }
-            }
+            recommendations.add(new Recommendation(activity, score, allReasons));
 
-            // ha en reason för café
-            if (activity.getCategory().equals("Cafe")) {
-                if (weather.getTemperature() < 10) { // eller annat temp
-                    score += 15;
-                    reason = "A warm beverage is perfect for cold weather";
-                }
-            }
-            // samma för park
-            if (activity.getCategory().equals("Park")) {
-                if (weather.getTemperature() > 15 && weather.getCondition().equals("Clear")) {
-                    score += 15;
-                    reason = "Great weather for enjoying the outdoors in the park";
-                }
-            }
-
-            // Begränsa score till 0-100
-            if (score > 100) score = 100;
-            if (score < 0) score = 0;
-
-            Recommendation rec = new Recommendation(activity, score, reason);
-            recommendations.add(rec);
         }
-        // Sortera rekommendationer baserat på score
+
         recommendations.sort((r1, r2) -> Integer.compare(r2.getScore(), r1.getScore()));
-        // Returnera topp 10
-        if (recommendations.size() > 10) {
-            recommendations = recommendations.subList(0, 10);
+
+        if (recommendations.size() > MAX_RESULTS) {
+            recommendations = recommendations.subList(0, MAX_RESULTS);
         }
 
         return recommendations;
+    }
+
+    /**
+     * calculate score based on the weather temperature
+     *
+     * @param weather weather
+     * @param activity activity
+     * @param score score
+     * @param reasons reasons
+     * @return score after calculating
+     */
+    private int checkTemperature(Weather weather, Activity activity, int score, List<String> reasons) {
+        double temperature = weather.getTemperature();
+
+        if (temperature < COLD_TEMP) {
+            if (activity.isIndoor()) {
+                score += 25;
+                reasons.add("Staying indoors may be more comfortable");
+            } else {
+                score -= 10;
+                reasons.add("It's quite cold outside");
+            }
+        } else if (temperature > WARM_TEMP) {
+            if (!activity.isIndoor()) {
+                score += 20;
+                reasons.add("Enjoy the warm weather outdoors");
+            } else {
+                score -= 10;
+                reasons.add("It's a nice day outside");
+            }
+        } else {
+            reasons.add("Weather is nice for most activities");
+        }
+        return score;
+    }
+
+    /**
+     * calculate score based on the weather Condition
+     *
+     * @param weather weather
+     * @param activity activity
+     * @param score score
+     * @param reasons reasons
+     * @return score after calculating
+     */
+    private int checkCondition(Weather weather, Activity activity, int score, List<String> reasons) {
+        String condition = weather.getCondition();
+
+        if (condition.equals("Rain") || condition.equals("Snow")) {
+            if (activity.isIndoor()) {
+                score += 30;
+                reasons.add("Indoors is more preferable in with conditions like this");
+            } else {
+                score -= 30;
+                reasons.add("Outdoor activities may be less enjoyable in this weather");
+            }
+        }
+        return score;
+    }
+
+    /**
+     * calculate score based on the weathers Wind
+     *
+     * @param weather weather
+     * @param activity activity
+     * @param score score
+     * @param reasons reasons
+     * @return score after calculating
+     */
+    private int checkWind(Weather weather, Activity activity, int score, List<String> reasons) {
+        double wind = weather.getWindSpeed();
+
+        if (wind > STRONG_WIND) {
+            if (!activity.isIndoor()) {
+                score -= 20;
+                reasons.add("You must exceed minimum weight requirements for strong wind conditions");
+            }
+        }
+
+        return score;
+    }
+
+    /**
+     * calculate score based on the weather Humidity
+     *
+     * @param weather weather
+     * @param activity activity
+     * @param score score
+     * @param reasons reasons
+     * @return score after calculating
+     */
+    private int checkHumidity(Weather weather, Activity activity, int score, List<String> reasons) {
+        double humidity = weather.getHumidity();
+
+        if (humidity > HIGH_HUMIDITY) {
+            if (activity.isIndoor()) {
+                score += 10;
+                reasons.add("High humidity makes indoor activities more comfortable");
+            }
+        }
+
+        return score;
+    }
+
+    /**
+     * calculate score based on the weather temperature and activity typ
+     *
+     * @param weather weather
+     * @param activity activity
+     * @param score score
+     * @param reasons reasons
+     * @return score after calculating
+     */
+    private int checkCategoryBonus(Weather weather, Activity activity, int score, List<String> reasons) {
+        double temperature = weather.getTemperature();
+        String category = activity.getCategory();
+
+        if (category.equals("Cafe") && temperature < COLD_TEMP) {
+            score += 10;
+            reasons.add("A warm beverage is perfect for cold weather");
+        }
+        if (category.equals("Park") && temperature > WARM_TEMP - 5) {
+            score += 15;
+            reasons.add("Great weather for enjoying the outdoors in the park");
+        }
+
+        return score;
 
     }
+
+    /**
+     * build a String of all reasons
+     * @param reasons reasons
+     * @return a String of reasons
+     */
+    private String buildString(List<String> reasons) {
+        if (reasons.isEmpty()) {
+            return "Weather is suitable for this activity";
+        }
+
+        return String.join(". ", reasons + ".");
+    }
+
 }

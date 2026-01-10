@@ -41,9 +41,6 @@ public class Main {
         locationService = new LocationService();
         recommendationEngine = new RecommendationEngine();
 
-        List<Activity> activities = locationService.getActivities("Stockholm");
-        System.out.println("Hittade " + activities.size() + " aktiviteter i Stockholm.");
-
         Javalin app = Javalin.create(config -> {
             config.plugins.enableCors(cors -> cors.add(it -> it.anyHost()));
 
