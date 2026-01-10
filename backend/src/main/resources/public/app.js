@@ -28,7 +28,7 @@ function setWeatherUI(city, weather) {
   condEl.textContent = weather.description ?? "-";
 }
 
-/* simple SVG icons (no emoji) */
+/* simple SVG icons */
 function iconFor(categoryText) {
   const c = (categoryText || "").toLowerCase();
 
@@ -209,6 +209,65 @@ window.addEventListener("resize", () => {
   setTimeout(() => {
     map.invalidateSize(true);
   }, 50);
+});
+
+
+
+/* klik på map för att söka stad */
+map.on('click', async function(e) {
+  const lat = e.latlng.lat;
+  const lon = e.latlng.lng;
+
+  console.log('Map clicked on:', lat, lon);
+
+  loading.style.display = "block";
+  list.innerHTML = '';
+
+  try {
+    // väder
+    const weatherRes = await fetch(`/api/v1/weather/coordinates?lat=${lat}&lon=${lon}`);
+    if (!weatherRes.ok) throw new Error("Kunde inte hämta väder för koordinater");
+    const weather = await weatherRes.json();
+
+    setWeatherUI(weather.city || "Okänd plats", weather);
+
+    // recommendationer
+    const recRes = await fetch(`/api/v1/recommendations/coordinates?lat=${lat}&lon=${lon}`);
+    if (!recRes.ok) throw new Error("Kunde inte hämta rekommendationer");
+    const recs = await recRes.json();
+
+    console.log('Got', recs.length, 'recommendations');
+
+    renderRecommendations(recs);
+    renderMarkers(recs);
+
+    //  marker på mappen
+    const clickMarker = L.marker([lat, lon], {  // ← FIXAT! Parenteser runt [lat, lon]
+      icon: L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      })
+    }).addTo(map).bindPopup('Du klickade här!').openPopup();
+
+    // ta bort den sen
+    setTimeout(() => {
+      map.removeLayer(clickMarker);
+    }, 3000);
+
+    setTimeout(() => {
+      map.invalidateSize(true);
+    }, 50);
+
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = `<p style="color:#b91c1c; font-weight:800;">Fel: ${escapeHtml(err.message)}</p>`;
+  } finally {
+    loading.style.display = "none";
+  }
 });
 
 loadCity("Stockholm");
