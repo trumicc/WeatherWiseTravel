@@ -16,6 +16,17 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 let markersLayer = L.layerGroup().addTo(map);
 
+// Get selected categories from checkboxes
+function getSelectedCategories() {
+  const checkboxes = document.querySelectorAll('.categories input[type="checkbox"]:checked');
+  const categories = Array.from(checkboxes).map(cb => cb.value);
+  if (categories.length === 0) {
+    alert("No categories found.");
+    return;
+  }
+  return categories;
+}
+
 function setWeatherUI(city, weather) {
   const cityEl = weatherInfo.querySelector(".city");
   const tempEl = weatherInfo.querySelector(".temp");
@@ -135,7 +146,7 @@ function renderMarkers(recs) {
     const a = r.activity || {};
     if (a.latitude && a.longitude) {
       const marker = L.marker([a.latitude, a.longitude]).bindPopup(
-        `<b>${escapeHtml(a.name || "")}</b><br>${escapeHtml(a.category || a.type || "")}<br>Score: ${Math.round(r.score)}`
+          `<b>${escapeHtml(a.name || "")}</b><br>${escapeHtml(a.category || a.type || "")}<br>Score: ${Math.round(r.score)}`
       );
       markersLayer.addLayer(marker);
     }
@@ -152,7 +163,11 @@ async function fetchWeather(city) {
 }
 
 async function fetchRecommendations(city) {
-  const res = await fetch(`/api/v1/recommendations?city=${encodeURIComponent(city)}`);
+  const categories = getSelectedCategories();
+  if (!categories) return null;
+
+  const categoriesStr = categories.join(',');
+  const res = await fetch(`/api/v1/recommendations?city=${encodeURIComponent(city)}&categories=${categoriesStr}`);
   if (!res.ok) throw new Error("Kunde inte hämta rekommendationer");
   return await res.json();
 }
@@ -166,6 +181,10 @@ async function loadCity(city) {
     setWeatherUI(city, weather);
 
     const recs = await fetchRecommendations(city);
+    if (!recs) {
+      loading.style.display = "none";
+      return;
+    }
     renderRecommendations(recs);
     renderMarkers(recs);
 
@@ -197,11 +216,11 @@ cityInput.addEventListener("keydown", (e) => {
 
 function escapeHtml(str) {
   return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
 }
 
 /* also refresh map on window resize (desktop -> prevent weird collapses) */
@@ -210,8 +229,6 @@ window.addEventListener("resize", () => {
     map.invalidateSize(true);
   }, 50);
 });
-
-
 
 /* klik på map för att söka stad */
 map.on('click', async function(e) {
@@ -231,8 +248,14 @@ map.on('click', async function(e) {
 
     setWeatherUI(weather.city || "Okänd plats", weather);
 
-    // recommendationer
-    const recRes = await fetch(`/api/v1/recommendations/coordinates?lat=${lat}&lon=${lon}`);
+    // recommendationer with selected categories
+    const categories = getSelectedCategories();
+    if (!categories) {
+      loading.style.display = "none";
+      return;
+    }
+    const categoriesStr = categories.join(',');
+    const recRes = await fetch(`/api/v1/recommendations/coordinates?lat=${lat}&lon=${lon}&categories=${categoriesStr}`);
     if (!recRes.ok) throw new Error("Kunde inte hämta rekommendationer");
     const recs = await recRes.json();
 
@@ -242,7 +265,7 @@ map.on('click', async function(e) {
     renderMarkers(recs);
 
     //  marker på mappen
-    const clickMarker = L.marker([lat, lon], {  // ← FIXAT! Parenteser runt [lat, lon]
+    const clickMarker = L.marker([lat, lon], {
       icon: L.icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -269,5 +292,3 @@ map.on('click', async function(e) {
     loading.style.display = "none";
   }
 });
-
-loadCity("Stockholm");
