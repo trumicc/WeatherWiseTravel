@@ -275,6 +275,16 @@ body{
   border: 1px solid rgba(17,24,39,.08);
   color: rgba(31,41,55,.75);
 }
+.rec-ic svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.rec-meta span {
+  text-transform: uppercase;
+}
+
 
 /* responsive: stack instead of hiding map */
 @media (max-width: 960px){
