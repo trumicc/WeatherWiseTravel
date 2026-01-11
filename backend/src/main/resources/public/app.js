@@ -241,7 +241,6 @@ map.on('click', async function(e) {
   list.innerHTML = '';
 
   try {
-    // väder
     const weatherRes = await fetch(`/api/v1/weather/coordinates?lat=${lat}&lon=${lon}`);
     if (!weatherRes.ok) throw new Error("Kunde inte hämta väder för koordinater");
     const weather = await weatherRes.json();
@@ -264,7 +263,6 @@ map.on('click', async function(e) {
     renderRecommendations(recs);
     renderMarkers(recs);
 
-    //  marker på mappen
     const clickMarker = L.marker([lat, lon], {
       icon: L.icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -275,8 +273,7 @@ map.on('click', async function(e) {
         shadowSize: [41, 41]
       })
     }).addTo(map).bindPopup('Du klickade här!').openPopup();
-
-    // ta bort den sen
+    
     setTimeout(() => {
       map.removeLayer(clickMarker);
     }, 3000);

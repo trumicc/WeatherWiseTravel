@@ -20,7 +20,7 @@ public class LocationService {
     private static final String USER_AGENT = "WeatherWiseTravel/1.0 (student)";
     private static final int RESULTS_PER_CATEGORY = 10;
 
-    private static final double SEARCH_RADIUS_KM = 5.0;
+    private static final double SEARCH_RADIUS_KM = 20.0;
 
     private static final Map<String, Boolean> ACTIVITY_MAP = Map.ofEntries(
             Map.entry("museum", true),
