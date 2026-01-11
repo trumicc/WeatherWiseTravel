@@ -72,10 +72,16 @@ public class Main {
 
     private static void handleRecommendations(Context ctx) {
         String city = ctx.queryParam("city");
+        String categoriesParam = ctx.queryParam("categories");
 
         if (city == null || city.isEmpty()) {
             ctx.status(400).json(new ErrorResponse("Missing city parameter"));
             return;
+        }
+
+        List<String> categories = null;
+        if (categoriesParam != null && !categoriesParam.isEmpty()) {
+            categories = List.of(categoriesParam.split(","));
         }
 
         try {
@@ -85,7 +91,7 @@ public class Main {
                 return;
             }
 
-            List<Activity> activities = locationService.getActivities(city);
+            List<Activity> activities = locationService.getActivities(city, categories);
             if (activities == null || activities.isEmpty()) {
                 ctx.status(404).json(new ErrorResponse("Activities NOT FOUND for city: " + city));
                 return;
@@ -127,14 +133,20 @@ public class Main {
 
     private static void handleActivities(Context ctx) {
         String city = ctx.queryParam("city");
+        String categoriesParam = ctx.queryParam("categories");
 
         if (city == null || city.isEmpty()) {
             ctx.status(400).json(new ErrorResponse("Missing city parameter"));
             return;
         }
 
+        List<String> categories = null;
+        if (categoriesParam != null && !categoriesParam.isEmpty()) {
+            categories = List.of(categoriesParam.split(","));
+        }
+
         try {
-            List<Activity> activities = locationService.getActivities(city);
+            List<Activity> activities = locationService.getActivities(city, categories);
             if (activities != null && !activities.isEmpty()) {
                 ctx.status(200).json(activities);
             } else {
@@ -182,10 +194,16 @@ public class Main {
     private static void handleActivitiesByCoordinates(Context ctx) {
         String latStr = ctx.queryParam("lat");
         String lonStr = ctx.queryParam("lon");
+        String categoriesParam = ctx.queryParam("categories");
 
         if (latStr == null || lonStr == null) {
             ctx.status(400).json(new ErrorResponse("Missing lat or lon parameter"));
             return;
+        }
+
+        List<String> categories = null;
+        if (categoriesParam != null && !categoriesParam.isEmpty()) {
+            categories = List.of(categoriesParam.split(","));
         }
 
         try {
@@ -197,7 +215,7 @@ public class Main {
                 return;
             }
 
-            List<Activity> activities = locationService.getActivitiesByCoordinates(lat, lon);
+            List<Activity> activities = locationService.getActivitiesByCoordinates(lat, lon, categories);
 
             if (activities != null && !activities.isEmpty()) {
                 ctx.status(200).json(activities);
@@ -215,10 +233,16 @@ public class Main {
     private static void handleRecommendationsByCoordinates(Context ctx) {
         String latStr = ctx.queryParam("lat");
         String lonStr = ctx.queryParam("lon");
+        String categoriesParam = ctx.queryParam("categories");
 
         if (latStr == null || lonStr == null) {
             ctx.status(400).json(new ErrorResponse("Missing lat or lon parameter"));
             return;
+        }
+
+        List<String> categories = null;
+        if (categoriesParam != null && !categoriesParam.isEmpty()) {
+            categories = List.of(categoriesParam.split(","));
         }
 
         try {
@@ -236,7 +260,7 @@ public class Main {
                 return;
             }
 
-            List<Activity> activities = locationService.getActivitiesByCoordinates(lat, lon);
+            List<Activity> activities = locationService.getActivitiesByCoordinates(lat, lon, categories);
             if (activities == null || activities.isEmpty()) {
                 ctx.status(404).json(new ErrorResponse("Activities NOT FOUND near coordinates: [" + lat + ", " + lon + "]"));
                 return;

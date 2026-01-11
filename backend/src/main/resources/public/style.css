@@ -292,3 +292,41 @@ body{
     max-height: 520px;
   }
 }
+
+.map-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.categories {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.8);
+  border: 1px solid rgba(17,24,39,.06);
+  border-radius: var(--radius-md);
+}
+
+.categories label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.categories input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 960px){
+  .categories {
+    gap: 12px;
+  }
+}

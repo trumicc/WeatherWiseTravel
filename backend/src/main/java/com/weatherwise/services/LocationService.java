@@ -6,8 +6,10 @@ import kong.unirest.HttpResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * LocationService that returns the activity from OpenStreetMap Nominatim API
@@ -18,7 +20,21 @@ public class LocationService {
     private static final String USER_AGENT = "WeatherWiseTravel/1.0 (student)";
     private static final int RESULTS_PER_CATEGORY = 10;
 
-    private static final double SEARCH_RADIUS_KM = 20.0;
+    private static final double SEARCH_RADIUS_KM = 5.0;
+
+    private static final Map<String, Boolean> ACTIVITY_MAP = Map.ofEntries(
+            Map.entry("museum", true),
+            Map.entry("theatre", true),
+            Map.entry("cinema", true),
+            Map.entry("library", true),
+            Map.entry("mall", true),
+            Map.entry("gallery", true),
+            Map.entry("suna", true),
+            Map.entry("park", false),
+            Map.entry("restaurant", false),
+            Map.entry("cafe", false),
+            Map.entry("gym", false)
+    );
 
     private final ObjectMapper mapper;
 
@@ -34,7 +50,7 @@ public class LocationService {
      * @param city city name
      * @return List with activities in different categories
      */
-    public List<Activity> getActivities(String city) {
+    public List<Activity> getActivities(String city, List<String> categories) {
         if (city == null || city.trim().isEmpty()) {
             System.out.println("Error: City name cannot be empty");
             return new ArrayList<>();
@@ -42,11 +58,9 @@ public class LocationService {
 
         List<Activity> activities = new ArrayList<>();
 
-        //fetch activities in different categories
-        activities.addAll(searchCategory(city, "museum"));
-        activities.addAll(searchCategory(city, "cafe"));
-        activities.addAll(searchCategory(city, "park"));
-        activities.addAll(searchCategory(city, "restaurant"));
+        for (String category : categories) {
+            activities.addAll(searchCategory(city, category));
+        }
 
         System.out.println("Found " + activities.size() + " activities in " + city);
         return activities;
@@ -121,11 +135,10 @@ public class LocationService {
      * @return true if indoor, false if outdoor
      */
     private boolean isIndoor(String type) {
-        return switch (type.toLowerCase()) {
-            case "museum", "theatre", "cinema", "library", "mall" -> true;
-            default -> false;
-        };
-
+        if(type != null && ACTIVITY_MAP.containsKey(type.toLowerCase())) {
+            return ACTIVITY_MAP.get(type.toLowerCase());
+        }
+        return false;
     }
 
     /**
@@ -148,13 +161,16 @@ public class LocationService {
      * @param lon longitude
      * @return List activities near coordinates
      */
-    public List<Activity> getActivitiesByCoordinates(double lat, double lon) {
+    public List<Activity> getActivitiesByCoordinates(double lat, double lon, List<String> categories) {
         List<Activity> activities = new ArrayList<>();
 
-        activities.addAll(searchCategoryByCoordinates(lat, lon, "museum"));
-        activities.addAll(searchCategoryByCoordinates(lat, lon, "cafe"));
-        activities.addAll(searchCategoryByCoordinates(lat, lon, "park"));
-        activities.addAll(searchCategoryByCoordinates(lat, lon, "restaurant"));
+        if (categories == null || categories.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        for (String category : categories) {
+            activities.addAll(searchCategoryByCoordinates(lat, lon, category));
+        }
 
         System.out.println("Found " + activities.size() + " activities near coordinates [" + lat + ", " + lon + "]");
         return activities;
