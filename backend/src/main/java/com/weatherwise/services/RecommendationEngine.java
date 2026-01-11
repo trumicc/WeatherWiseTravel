@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Recommendation class that calculate the score of every activity
+ * Rekommendationsklass som beräknar poängen för varje aktivitet
  */
 public class RecommendationEngine {
 
@@ -25,10 +25,10 @@ public class RecommendationEngine {
     }
 
     /**
-     * return recommendations based on the weather and activity
-     * @param weather weather object
-     * @param activities List of activity
-     * @return Recommendation Objects
+     * Rekommendationsklass som beräknar poängen för varje aktivitet
+     * @param weather väder objekt
+     * @param activities Lista av aktiviteter
+     * @return rekomendation Objekt
      */
     public List<Recommendation> getRecommendations(Weather weather, List<Activity> activities) {
 
@@ -75,13 +75,13 @@ public class RecommendationEngine {
     }
 
     /**
-     * calculate score based on the weather temperature
+     * beräkna poäng baserat på vädertemperaturen
      *
-     * @param weather weather
-     * @param activity activity
-     * @param score score
-     * @param reasons reasons
-     * @return score after calculating
+     * @param weather väder
+     * @param activity aktivitet
+     * @param score poäng
+     * @param reasons anledningar
+     * @return poäng efter beräkning
      */
     private int checkTemperature(Weather weather, Activity activity, int score, List<String> reasons) {
         double temperature = weather.getTemperature();
@@ -109,13 +109,13 @@ public class RecommendationEngine {
     }
 
     /**
-     * calculate score based on the weather Condition
+     * beräkna poäng baserat på vädertemperaturen
      *
-     * @param weather weather
-     * @param activity activity
-     * @param score score
-     * @param reasons reasons
-     * @return score after calculating
+     * @param weather väder
+     * @param activity aktivitet
+     * @param score poäng
+     * @param reasons anledningar 
+     * @return poäng efter beräkning
      */
     private int checkCondition(Weather weather, Activity activity, int score, List<String> reasons) {
         String condition = weather.getCondition();
@@ -133,13 +133,13 @@ public class RecommendationEngine {
     }
 
     /**
-     * calculate score based on the weathers Wind
+     * beräkna poäng baserat på vädertemperaturen
      *
-     * @param weather weather
-     * @param activity activity
-     * @param score score
-     * @param reasons reasons
-     * @return score after calculating
+     * @param weather väder
+     * @param activity aktivitet
+     * @param score poäng
+     * @param reasons anledningar
+     * @return poäng efter beräkning
      */
     private int checkWind(Weather weather, Activity activity, int score, List<String> reasons) {
         double wind = weather.getWindSpeed();
@@ -155,13 +155,13 @@ public class RecommendationEngine {
     }
 
     /**
-     * calculate score based on the weather Humidity
+     * beräkna poäng baserat på luftfuktigheten
      *
-     * @param weather weather
-     * @param activity activity
-     * @param score score
-     * @param reasons reasons
-     * @return score after calculating
+     * @param weather väder
+     * @param activity aktivitet
+     * @param score poäng
+     * @param reasons anledningar
+     * @return poäng efter beräkning
      */
     private int checkHumidity(Weather weather, Activity activity, int score, List<String> reasons) {
         double humidity = weather.getHumidity();
@@ -177,13 +177,13 @@ public class RecommendationEngine {
     }
 
     /**
-     * calculate score based on the weather temperature and activity typ
+     * beräkna poäng baserat på vädertemperatur och aktivitetstyp
      *
-     * @param weather weather
-     * @param activity activity
-     * @param score score
-     * @param reasons reasons
-     * @return score after calculating
+     * @param weather väder
+     * @param activity aktivitet
+     * @param score poäng
+     * @param reasons anledningar
+     * @return beräknad poäng
      */
     private int checkCategoryBonus(Weather weather, Activity activity, int score, List<String> reasons) {
         double temperature = weather.getTemperature();
@@ -203,9 +203,9 @@ public class RecommendationEngine {
     }
 
     /**
-     * build a String of all reasons
-     * @param reasons reasons
-     * @return a String of reasons
+     * bygga en sträng med alla anledningar
+     * @param reasons anledningar
+     * @return en sträng med anledningar
      */
     private String buildString(List<String> reasons) {
         if (reasons.isEmpty()) {

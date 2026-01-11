@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 /**
- * LocationService that returns the activity from OpenStreetMap Nominatim API
+ * LocationService som hämtar aktiviteter från OpenStreetMap Nominatim-API:t
  */
 public class LocationService {
 
@@ -39,16 +39,16 @@ public class LocationService {
     private final ObjectMapper mapper;
 
     /**
-     * LocationService Constructor
+     * LocationService-konstruktor
      */
     public LocationService() {
         this.mapper = new ObjectMapper();
     }
 
     /**
-     * fetch data for all activities in a city
-     * @param city city name
-     * @return List with activities in different categories
+     * hämta data för alla aktiviteter i en stad
+     * @param city stads namn
+     * @return Lista med aktiviteter i olika kategorier
      */
     public List<Activity> getActivities(String city, List<String> categories) {
         if (city == null || city.trim().isEmpty()) {
@@ -67,10 +67,10 @@ public class LocationService {
     }
 
     /**
-     * calls the API and fetch activities in a specific category
-     * @param city city name
-     * @param category category
-     * @return List with activities in the category
+     * anropar API:t och hämtar aktiviteter i en specifik kategori
+     * @param city stads namn
+     * @param category kategori
+     * @return Lista med aktiviteter i kategorin
      */
     private List<Activity> searchCategory(String city, String category) {
 
@@ -96,10 +96,10 @@ public class LocationService {
     }
 
     /**
-     * Parse the JSON-response from API
-     * @param json Json String from API
-     * @param category category
-     * @return List with activities
+     * Parsa JSON-svaret från API:t
+     * @param json JSON-sträng från API:t
+     * @param category kategori
+     * @return lista med aktiviteter 
      */
     private List<Activity> parseActivitiesResponse(String json, String category) {
         List<Activity> activities = new ArrayList<>();
@@ -113,7 +113,7 @@ public class LocationService {
                  String type = place.path("type").asText();
                  int id = place.path("place_id").asInt();
 
-                 // indoor or outdoor activity
+                 // inomhus eller utomhusaktivitet
                  boolean indoor = isIndoor(type);
 
                  Activity activity = new Activity(id, name, category, lat, lon, indoor);
@@ -130,9 +130,9 @@ public class LocationService {
     }
 
     /**
-     * Decide if an activity is indoor or outdoor
-     * @param type type OSM from API
-     * @return true if indoor, false if outdoor
+     * Avgör om en aktivitet är inomhus eller utomhus
+     * @param type OSM-typ från API:t
+     * @return true om inomhus, false om utomhus
      */
     private boolean isIndoor(String type) {
         if(type != null && ACTIVITY_MAP.containsKey(type.toLowerCase())) {
@@ -142,9 +142,9 @@ public class LocationService {
     }
 
     /**
-     * Build search URL for Nominatim API
-     * @param city city name
-     * @param category category name
+     * Bygg sök-URL för Nominatim-API:t
+     * @param city stads namn
+     * @param category kategori namn
      * @return URL
      */
     private String buildSearchUrl(String city, String category) {
@@ -156,10 +156,10 @@ public class LocationService {
     }
 
     /**
-     * Fetch activities based on coordinates
-     * @param lat latitude
-     * @param lon longitude
-     * @return List activities near coordinates
+     * Hämta aktiviteter baserat på koordinater
+     * @param lat latitud
+     * @param lon longitud
+     * @return Lista aktiviteter nära koordinater
      */
     public List<Activity> getActivitiesByCoordinates(double lat, double lon, List<String> categories) {
         List<Activity> activities = new ArrayList<>();
@@ -177,11 +177,11 @@ public class LocationService {
     }
 
     /**
-     * Search for activities by coordinates and category
-     * @param lat latitude
-     * @param lon longitude
-     * @param category category
-     * @return List with activities
+     * Sök efter aktiviteter baserat på koordinater och kategori
+     * @param lat latitud
+     * @param lon longitud
+     * @param category kategori
+     * @return lista med aktiviteter 
      */
     private List<Activity> searchCategoryByCoordinates(double lat, double lon, String category) {
         String url = buildSearchUrlByCoordinates(lat, lon, category);
@@ -204,11 +204,11 @@ public class LocationService {
     }
 
     /**
-     * Build search URL by coordinates
-     * @param lat latitude
-     * @param lon longitude
-     * @param category category
-     * @return URL based coordinate
+     * Bygg sök-URL baserat på koordinater
+     * @param lat latitud
+     * @param lon longitud
+     * @param category kategori
+     * @return URL baserad på koordinater
      */
     private String buildSearchUrlByCoordinates(double lat, double lon, String category) {
         double radiusDegrees = SEARCH_RADIUS_KM / 111.0;

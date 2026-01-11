@@ -23,7 +23,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        // --- Load config.properties safely ---
+        // --- Läs in config.properties på ett säkert sätt ---
         Properties props = new Properties();
         try (InputStream in = Main.class.getClassLoader().getResourceAsStream("config.properties")) {
             if (in == null) {
@@ -44,7 +44,7 @@ public class Main {
         Javalin app = Javalin.create(config -> {
             config.plugins.enableCors(cors -> cors.add(it -> it.anyHost()));
 
-            // Serve frontend from: src/main/resources/public
+            // Servera frontend från: src/main/resources/public
             config.staticFiles.add(staticFiles -> {
                 staticFiles.hostedPath = "/";      // http://localhost:7001/
                 staticFiles.directory = "/public"; // resources/public
@@ -52,12 +52,12 @@ public class Main {
             });
         });
 
-        // API root (so "/" can be the website)
+        // API-rot (så att “/” kan vara webbplatsen)
         app.get("/api", ctx -> ctx.json(new Response("WeatherWise Travel API", "1.0", "Running")));
         app.get("/health", ctx -> ctx.json(new Response("OK", "1.0", "Healthy")));
         app.get("/api/v1/test", ctx -> ctx.json(new Response("Test", "1.0", "Works!")));
 
-        // Weather & activities endpoints
+        // Väder- och aktivitetsendpoints
         app.get("/api/v1/weather/coordinates", Main::handleWeatherByCoordinates);
         app.get("/api/v1/activities/coordinates", Main::handleActivitiesByCoordinates);
         app.get("/api/v1/recommendations/coordinates", Main::handleRecommendationsByCoordinates);

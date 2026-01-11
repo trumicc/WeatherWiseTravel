@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Weather Service class, calls the openWeathersAPI and returns the weather,
- * temperature and wind speed.
+ * Weather Service-klass som anropar OpenWeather-API:t och returnerar väder,
+ * temperatur och vindhastighet.
  */
 public class WeatherService {
     private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather";
@@ -15,7 +15,7 @@ public class WeatherService {
     private final ObjectMapper mapper;
 
     /**
-     * WeatherService constructor
+     *WeatherService-konstruktor
      * @param apiKey
      */
     public WeatherService(String apiKey) {
@@ -24,9 +24,9 @@ public class WeatherService {
     }
 
     /**
-     * main function that returns the weather for a specific city
+     * huvudfunktion som returnerar vädret för en specifik stad
      * @param city
-     * @return returns a Weather object
+     * @return returnerar ett Weather-objekt
      */
     public Weather getWeather(String city) {
         if (city == null || city.trim().isEmpty()) {
@@ -34,7 +34,7 @@ public class WeatherService {
             return null;
         }
 
-        // generate a URL with city and key;
+        // generera en URL med stad och nyckel;
         String url = buildUrl(city);
         System.out.println("URL: " + url);
 
@@ -54,9 +54,9 @@ public class WeatherService {
     }
 
     /**
-     * parse the json object to a Weather object
+     * parsa JSON-objektet till ett Weather-objekt
      * @param json
-     * @return a weather object
+     * @return ett Weather-objekt
      */
     private Weather parseWeatherResponse(String json) {
         try {
@@ -78,19 +78,19 @@ public class WeatherService {
     }
 
     /**
-     * this function generate a URL based on the APIKey and the given city
+     * den här funktionen genererar en URL baserad på API-nyckeln och den angivna staden
      * @param city
-     * @return a URL with city
+     * @return en URL med stad
      */
     private String buildUrl(String city) {
         return API_URL + "?q=" + city + "&appid=" + apiKey + "&units=metric" + "&lang=sv";
     }
 
     /**
-     * Fetch weather based on coordinates
-     * @param lat latitude
-     * @param lon longitude
-     * @return Weather on coordinates
+     * Hämta väder baserat på koordinater
+     * @param lat latitud
+     * @param lon longitud
+     * @return Väder baserat på koordinater
      */
     public Weather getWeatherByCoordinates(double lat, double lon) {
 
@@ -113,9 +113,9 @@ public class WeatherService {
     }
 
     /**
-     * Generate URL based on coordinates
-     * @param lat latitude
-     * @param lon longitude
+     * Hämta väder baserat på koordinater
+     * @param lat latitud
+     * @param lon longitud
      * @return url
      */
     private String buildUrlByCoordinates(double lat, double lon) {
