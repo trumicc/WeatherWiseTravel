@@ -41,9 +41,9 @@ function setWeatherUI(city, weather) {
 
 /* simple SVG icons */
 function iconFor(categoryText) {
-  const c = (categoryText || "").toLowerCase();
+  const c = (categoryText || "").toUpperCase();
 
-  if (c.includes("museum")) return `
+  if (c.includes("MUSEUM")) return `
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
       <path d="M4 10h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
       <path d="M6 10V19M10 10V19M14 10V19M18 10V19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -52,7 +52,7 @@ function iconFor(categoryText) {
     </svg>
   `;
 
-  if (c.includes("cafe") || c.includes("café") || c.includes("coffee")) return `
+  if (c.includes("CAFE") || c.includes("CAFÉ") || c.includes("COFFEE")) return `
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
       <path d="M5 8h10v5a5 5 0 0 1-10 0V8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
       <path d="M15 9h2.2a2.3 2.3 0 0 1 0 4.6H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -60,12 +60,62 @@ function iconFor(categoryText) {
     </svg>
   `;
 
-  if (c.includes("park") || c.includes("nature")) return `
+  if (c.includes("PARK") || c.includes("NATURE")) return `
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
       <path d="M12 3c3 0 5 2.2 5 5 0 2.5-1.7 4.3-5 4.3S7 10.5 7 8c0-2.8 2-5 5-5Z"
             stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
       <path d="M12 12.3V21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
       <path d="M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  `;
+
+  if (c.includes("THEATER") || c.includes("THEATRE") || c.includes("TEATER")) return `
+  <svg viewBox="0 0 15 15" width="22" height="22" fill="currentColor" aria-hidden="true">
+    <path d="M2,1c0,0-1,0-1,1v5.1582C1,8.8885,1.354,11,4.5,11H5V8L2.5,9c0,0,0-2.5,2.5-2.5V5
+    c0-0.7078,0.0868-1.3209,0.5-1.7754C5.8815,2.805,6.5046,1.9674,8.1562,2.7539L9,3.3027V2c0,0,0-1-1-1C7.2922,1,6.0224,2,5,2
+    S2.7865,1,2,1z M3,3c0.5523,0,1,0.4477,1,1S3.5523,5,3,5S2,4.5523,2,4S2.4477,3,3,3z M7,4c0,0-1,0-1,1v5c0,2,1,4,4,4s4-2,4-4V5
+    c0-1-1-1-1-1c-0.7078,0-1.9776,1-3,1S7.7865,4,7,4z M8,6c0.5523,0,1,0.4477,1,1S8.5523,8,8,8S7,7.5523,7,7S7.4477,6,8,6z M12,6
+    c0.5523,0,1,0.4477,1,1s-0.4477,1-1,1s-1-0.4477-1-1S11.4477,6,12,6z M7.5,10H10h2.5c0,0,0,2.5-2.5,2.5S7.5,10,7.5,10z"/>
+  </svg>
+`;
+
+
+  if (c.includes("SHOPPING") || c.includes("SHOP") || c.includes("STORE") || c.includes("MALL")) return `
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M6 7h12l-1 13H7L6 7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M9 7a3 3 0 0 1 6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  `;
+
+  if (c.includes("LIBRARY") || c.includes("BIBLIOTEK")) return `
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+    <path d="M4 19V6.2C4 5.0799 4 4.51984 4.21799 4.09202C4.40973 3.71569 4.71569 3.40973 5.09202 3.21799C5.51984 3 6.0799 3 7.2 3H16.8C17.9201 3 18.4802 3 18.908 3.21799C19.2843 3.40973 19.5903 3.71569 19.782 4.09202C20 4.51984 20 5.0799 20 6.2V17H6C4.89543 17 4 17.8954 4 19ZM4 19C4 20.1046 4.89543 21 6 21H20M9 7H15M9 11H15M19 17V21"
+      stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+`;
+
+
+  if (c.includes("GYM") || c.includes("FITNESS")) return `
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M3 10v4M21 10v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M7 9v6M17 9v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M3 12h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  `;
+
+  if (c.includes("RESTAURANT") || c.includes("RESTURANG") || c.includes("FOOD") || c.includes("EAT")) return `
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M6 3v8M10 3v8M8 3v18"
+            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M14 3v6a2 2 0 0 0 4 0V3M16 9v12"
+            stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  `;
+
+  if (c.includes("CINEMA") || c.includes("MOVIE") || c.includes("BIO") || c.includes("FILM")) return `
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M3 6h18v12H3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M7 6v12M17 6v12" stroke="currentColor" stroke-width="1.6"/>
     </svg>
   `;
 
@@ -77,6 +127,7 @@ function iconFor(categoryText) {
   `;
 }
 
+
 function starIcon() {
   return `
     <svg class="score-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -86,10 +137,20 @@ function starIcon() {
 }
 
 function variantClass(categoryText, index) {
-  const c = (categoryText || "").toLowerCase();
-  if (c.includes("museum")) return "rec-blue";
-  if (c.includes("cafe") || c.includes("café") || c.includes("coffee")) return "rec-orange";
-  if (c.includes("park") || c.includes("nature")) return "rec-green";
+  const c = (categoryText || "").toUpperCase();
+
+  if (c.includes("MUSEUM")) return "rec-blue";
+  if (c.includes("CAFE") || c.includes("CAFÉ") || c.includes("COFFEE")) return "rec-orange";
+  if (c.includes("PARK") || c.includes("NATURE")) return "rec-green";
+
+  
+  if (c.includes("THEATER") || c.includes("THEATRE") || c.includes("TEATER")) return "rec-blue";
+  if (c.includes("SHOPPING") || c.includes("SHOP") || c.includes("STORE") || c.includes("MALL")) return "rec-orange";
+  if (c.includes("LIBRARY") || c.includes("BIBLIOTEK")) return "rec-green";
+  if (c.includes("GYM") || c.includes("FITNESS")) return "rec-orange";
+  if (c.includes("RESTAURANT") || c.includes("RESTURANG") || c.includes("FOOD") || c.includes("EAT")) return "rec-green";
+  if (c.includes("CINEMA") || c.includes("MOVIE") || c.includes("BIO") || c.includes("FILM")) return "rec-blue";
+
   return ["rec-blue", "rec-orange", "rec-green"][index % 3];
 }
 
@@ -98,9 +159,9 @@ function indoorOutdoor(activity) {
   if (typeof activity.isIndoor === "boolean") return activity.isIndoor ? "Indoor" : "Outdoor";
 
   if (activity.type) {
-    const t = String(activity.type).toLowerCase();
-    if (t.includes("indoor")) return "Indoor";
-    if (t.includes("outdoor")) return "Outdoor";
+    const t = String(activity.type).toUpperCase();
+    if (t.includes("INDOOR")) return "Indoor";
+    if (t.includes("OUTDOOR")) return "Outdoor";
   }
   return "";
 }
