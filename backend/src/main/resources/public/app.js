@@ -8,7 +8,7 @@ if (!weatherInfo || !cityInput || !searchBtn || !list || !loading) {
   throw new Error("Missing required elements (weatherInfo/cityInput/searchBtn/loading/recommendationsList)");
 }
 
-/* ---------- Leaflet map ---------- */
+/* ---------- Leaflet karta ---------- */
 const map = L.map("map").setView([59.3293, 18.0686], 12);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
@@ -16,7 +16,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 let markersLayer = L.layerGroup().addTo(map);
 
-// Get selected categories from checkboxes
+// Hämta valda kategorier från kryssrutor
 function getSelectedCategories() {
   const checkboxes = document.querySelectorAll('.categories input[type="checkbox"]:checked');
   const categories = Array.from(checkboxes).map(cb => cb.value);
@@ -39,7 +39,7 @@ function setWeatherUI(city, weather) {
   condEl.textContent = weather.description ?? "-";
 }
 
-/* simple SVG icons */
+/* enkla SVG ikoner */
 function iconFor(categoryText) {
   const c = (categoryText || "").toUpperCase();
 
@@ -249,7 +249,7 @@ async function loadCity(city) {
     renderRecommendations(recs);
     renderMarkers(recs);
 
-    // IMPORTANT: re-calc Leaflet size after DOM/layout updates
+    // VIKTIGT:Beräkna om Leaflets storlek efter DOM-/layoutuppdateringar
     setTimeout(() => {
       map.invalidateSize(true);
     }, 50);
@@ -284,14 +284,14 @@ function escapeHtml(str) {
       .replaceAll("'", "&#039;");
 }
 
-/* also refresh map on window resize (desktop -> prevent weird collapses) */
+/* Uppdatera även kartan vid ändring av fönsterstorlek (desktop → förhindra konstiga kollapser) */
 window.addEventListener("resize", () => {
   setTimeout(() => {
     map.invalidateSize(true);
   }, 50);
 });
 
-/* klik på map för att söka stad */
+/* klicka på map för att söka efter stad */
 map.on('click', async function(e) {
   const lat = e.latlng.lat;
   const lon = e.latlng.lng;
@@ -308,7 +308,7 @@ map.on('click', async function(e) {
 
     setWeatherUI(weather.city || "Okänd plats", weather);
 
-    // recommendationer with selected categories
+    // rekommendationer med valda kategorier
     const categories = getSelectedCategories();
     if (!categories) {
       loading.style.display = "none";
