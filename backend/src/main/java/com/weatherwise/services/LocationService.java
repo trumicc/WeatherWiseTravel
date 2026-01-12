@@ -30,9 +30,9 @@ public class LocationService {
             Map.entry("mall", true),
             Map.entry("gallery", true),
             Map.entry("park", false),
-            Map.entry("restaurant", false),
-            Map.entry("cafe", false),
-            Map.entry("gym", false)
+            Map.entry("restaurant", true),
+            Map.entry("cafe", true),
+            Map.entry("gym", true)
     );
 
     private final ObjectMapper mapper;

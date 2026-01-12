@@ -4,8 +4,8 @@ import com.weatherwise.models.Activity;
 import com.weatherwise.models.Recommendation;
 import com.weatherwise.models.Weather;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * Rekommendationsklass som beräknar poängen för varje aktivitet
@@ -51,6 +51,9 @@ public class RecommendationEngine {
             score = checkWind(weather, activity, score, reasons);
             score = checkHumidity(weather, activity, score, reasons);
             score = checkCategoryBonus(weather, activity, score, reasons);
+
+            LocalDateTime time = LocalDateTime.now();
+            score = checkCategoryTimeBonus(time, activity, score, reasons);
 
             if (score > 100) {
                 score = 100;
@@ -189,17 +192,44 @@ public class RecommendationEngine {
         double temperature = weather.getTemperature();
         String category = activity.getCategory();
 
-        if (category.equals("Cafe") && temperature < COLD_TEMP) {
+        if (category.equals("cafe") && temperature < COLD_TEMP) {
             score += 10;
-            reasons.add("A warm beverage is perfect for cold weather");
+            reasons.add("A warm cafe is perfect for cold weather");
         }
-        if (category.equals("Park") && temperature > WARM_TEMP - 5) {
+        if (category.equals("park") && temperature > WARM_TEMP - 5) {
             score += 15;
             reasons.add("Great weather for enjoying the outdoors in the park");
         }
 
         return score;
+    }
 
+    private int checkCategoryTimeBonus(LocalDateTime time, Activity activity, int score, List<String> reasons) {
+        String category = activity.getCategory();
+        int hour = time.getHour();
+
+        if (category.equals("mall") && hour >= 10 && hour < 19) {
+            score += 5;
+            reasons.add("Stores are open for shopping");
+            return score;
+        }
+        if (category.equals("cafe") && ((hour >= 7 && hour < 10) || (hour >= 14 && hour < 17))) {
+            score += 5;
+            reasons.add("Good time for a fika");
+            return score;
+        }
+        if (category.equals("restaurant") && ((hour >= 11 && hour < 14) || (hour >= 18 && hour < 21))){
+            score += 5;
+            reasons.add("Ideal time for a warm meal");
+            return score;
+        }
+        if (category.equals("gym") && hour > 15 && hour < 18) {
+            score += 5;
+            reasons.add("Nice time to have a workout");
+            return score;
+        }
+
+        return score;
     }
 
     /**
