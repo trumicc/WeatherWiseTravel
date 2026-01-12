@@ -18,7 +18,7 @@ public class RecommendationEngine {
     private static final double STRONG_WIND = 25.0;
     private static final int HIGH_HUMIDITY = 80;
 
-    private static final int MAX_RESULTS = 10;
+    private static final int MAX_RESULTS = 15;
 
     public RecommendationEngine() {
 
@@ -70,9 +70,9 @@ public class RecommendationEngine {
 
         recommendations.sort((r1, r2) -> Integer.compare(r2.getScore(), r1.getScore()));
 
-        if (recommendations.size() > MAX_RESULTS) {
-            recommendations = recommendations.subList(0, MAX_RESULTS);
-        }
+        recommendations = diversifyRecommendations(recommendations);
+
+        recommendations.sort((r1, r2) -> Integer.compare(r2.getScore(), r1.getScore()));
 
         return recommendations;
     }
@@ -109,6 +109,43 @@ public class RecommendationEngine {
             reasons.add("Weather is nice for most activities");
         }
         return score;
+    }
+
+    private List<Recommendation> diversifyRecommendations(List<Recommendation> recommendations) {
+        if (recommendations.isEmpty()) {
+            return recommendations;
+        }
+
+        Map<String, List<Recommendation>> perCategory = new HashMap<>();
+
+        for (Recommendation recommendation : recommendations) {
+            String category = recommendation.getActivity().getCategory();
+            if (!perCategory.containsKey(category)) {
+                perCategory.put(category, new ArrayList<>());
+            }
+            perCategory.get(category).add(recommendation);
+        }
+
+        List<Recommendation> result = new ArrayList<>();
+
+        for (List<Recommendation> categoryRecommendation : perCategory.values()) {
+            int count = Math.min(2, categoryRecommendation.size());
+            for (int i = 0; i < count; i++) {
+                result.add(categoryRecommendation.get(i));
+            }
+        }
+
+        for (Recommendation recommendation : recommendations) {
+            if (result.size() >= MAX_RESULTS) {
+                break;
+            }
+
+            if (!result.contains(recommendation)) {
+                result.add(recommendation);
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -221,11 +258,6 @@ public class RecommendationEngine {
         if (category.equals("restaurant") && ((hour >= 11 && hour < 14) || (hour >= 18 && hour < 21))){
             score += 5;
             reasons.add("Ideal time for a warm meal");
-            return score;
-        }
-        if (category.equals("gym") && hour > 15 && hour < 18) {
-            score += 5;
-            reasons.add("Nice time to have a workout");
             return score;
         }
 
