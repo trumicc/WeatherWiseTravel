@@ -29,7 +29,6 @@ public class LocationService {
             Map.entry("library", true),
             Map.entry("mall", true),
             Map.entry("gallery", true),
-            Map.entry("suna", true),
             Map.entry("park", false),
             Map.entry("restaurant", false),
             Map.entry("cafe", false),

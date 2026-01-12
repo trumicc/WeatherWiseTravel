@@ -212,7 +212,7 @@ public class RecommendationEngine {
             return "Weather is suitable for this activity";
         }
 
-        return String.join(". ", reasons + ".");
+        return String.join(". ", reasons);
     }
 
 }
