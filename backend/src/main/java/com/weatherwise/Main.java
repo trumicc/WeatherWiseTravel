@@ -52,7 +52,6 @@ public class Main {
             });
         });
 
-        // API-rot (så att “/” kan vara webbplatsen)
         app.get("/api", ctx -> ctx.json(new Response("WeatherWise Travel API", "1.0", "Running")));
         app.get("/health", ctx -> ctx.json(new Response("OK", "1.0", "Healthy")));
         app.get("/api/v1/test", ctx -> ctx.json(new Response("Test", "1.0", "Works!")));
@@ -74,20 +73,17 @@ public class Main {
         String city = ctx.queryParam("city");
         String categoriesParam = ctx.queryParam("categories");
 
-        if (city == null || city.isEmpty()) {
-            ctx.status(400).json(new ErrorResponse("Missing city parameter"));
+        if (city == null || city.isEmpty() || categoriesParam == null || categoriesParam.isEmpty()) {
+            ctx.status(400).json(new ErrorResponse("Missing city or categories parameter"));
             return;
         }
 
-        List<String> categories = null;
-        if (categoriesParam != null && !categoriesParam.isEmpty()) {
-            categories = List.of(categoriesParam.split(","));
-        }
+        List<String> categories = List.of(categoriesParam.split(","));
 
         try {
             Weather weather = weatherService.getWeather(city);
             if (weather == null) {
-                ctx.status(404).json(new ErrorResponse("Weather NOT FOUND for city: " + city));
+                ctx.status(404).json(new ErrorResponse("Weather Data NOT FOUND for city: " + city));
                 return;
             }
 
@@ -101,7 +97,7 @@ public class Main {
             if (recommendations != null && !recommendations.isEmpty()) {
                 ctx.status(200).json(recommendations);
             } else {
-                ctx.status(404).json(new ErrorResponse("Recommendation data not found"));
+                ctx.status(404).json(new ErrorResponse("Recommendation Data not found for city: " + city));
             }
 
         } catch (Exception e) {
@@ -135,15 +131,12 @@ public class Main {
         String city = ctx.queryParam("city");
         String categoriesParam = ctx.queryParam("categories");
 
-        if (city == null || city.isEmpty()) {
-            ctx.status(400).json(new ErrorResponse("Missing city parameter"));
+        if (city == null || city.isEmpty() || categoriesParam == null || categoriesParam.isEmpty()) {
+            ctx.status(400).json(new ErrorResponse("Missing city or categories parameter"));
             return;
         }
 
-        List<String> categories = null;
-        if (categoriesParam != null && !categoriesParam.isEmpty()) {
-            categories = List.of(categoriesParam.split(","));
-        }
+        List<String> categories = List.of(categoriesParam.split(","));
 
         try {
             List<Activity> activities = locationService.getActivities(city, categories);
@@ -196,15 +189,13 @@ public class Main {
         String lonStr = ctx.queryParam("lon");
         String categoriesParam = ctx.queryParam("categories");
 
-        if (latStr == null || lonStr == null) {
-            ctx.status(400).json(new ErrorResponse("Missing lat or lon parameter"));
+        if (latStr == null || lonStr == null || categoriesParam == null || categoriesParam.isEmpty()) {
+            ctx.status(400).json(new ErrorResponse("Missing lat, lon or categories  parameter"));
             return;
         }
 
-        List<String> categories = null;
-        if (categoriesParam != null && !categoriesParam.isEmpty()) {
-            categories = List.of(categoriesParam.split(","));
-        }
+        List<String> categories = List.of(categoriesParam.split(","));
+
 
         try {
             double lat = Double.parseDouble(latStr);
@@ -235,15 +226,13 @@ public class Main {
         String lonStr = ctx.queryParam("lon");
         String categoriesParam = ctx.queryParam("categories");
 
-        if (latStr == null || lonStr == null) {
+        if (latStr == null || lonStr == null || categoriesParam == null || categoriesParam.isEmpty()) {
             ctx.status(400).json(new ErrorResponse("Missing lat or lon parameter"));
             return;
         }
 
-        List<String> categories = null;
-        if (categoriesParam != null && !categoriesParam.isEmpty()) {
-            categories = List.of(categoriesParam.split(","));
-        }
+        List <String> categories = List.of(categoriesParam.split(","));
+
 
         try {
             double lat = Double.parseDouble(latStr);
