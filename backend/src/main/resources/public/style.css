@@ -285,6 +285,15 @@ body{
   text-transform: uppercase;
 }
 
+.insights-box {
+  background: rgba(255,255,255,.95);
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(17,24,39,.08);
+  font-weight: 700;
+  margin-bottom: 14px;
+  box-shadow: 0 6px 14px rgba(17,24,39,.08);
+}
 
 /* responsivt: stapla i stället för att dölja kartan */
 @media (max-width: 960px){

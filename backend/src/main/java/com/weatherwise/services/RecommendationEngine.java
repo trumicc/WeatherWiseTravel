@@ -74,6 +74,26 @@ public class RecommendationEngine {
 
         recommendations.sort((r1, r2) -> Integer.compare(r2.getScore(), r1.getScore()));
 
+        int indoor = 0;
+int outdoor = 0;
+
+for (Recommendation r : recommendations) {
+    Activity a = r.getActivity();
+
+    if (a != null && Boolean.TRUE.equals(a.isIndoor())) {
+    indoor++;
+} else {
+    outdoor++;
+}
+}
+
+if (!recommendations.isEmpty()) {
+    recommendations.get(0).setInsights(
+            recommendations.size(),
+            indoor,
+            outdoor
+    );
+}
         return recommendations;
     }
 

@@ -217,6 +217,7 @@ function renderMarkers(recs) {
   if (first) map.setView([first.activity.latitude, first.activity.longitude], 12);
 }
 
+
 async function fetchWeather(city) {
   const res = await fetch(`/api/v1/weather/${encodeURIComponent(city)}`);
   if (!res.ok) throw new Error("Kunde inte hämta väder");
@@ -242,14 +243,18 @@ async function loadCity(city) {
     setWeatherUI(city, weather);
 
     const recs = await fetchRecommendations(city);
-    if (!recs) {
+
+    if (!recs || recs.length === 0) {
       loading.style.display = "none";
       return;
     }
+
     renderRecommendations(recs);
     renderMarkers(recs);
 
-    // VIKTIGT:Beräkna om Leaflets storlek efter DOM-/layoutuppdateringar
+    // ✅ VISA STATISTIK
+    renderInsights(recs[0]);
+
     setTimeout(() => {
       map.invalidateSize(true);
     }, 50);
@@ -283,7 +288,24 @@ function escapeHtml(str) {
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
 }
+function renderInsights(data) {
 
+  if (!data || data.totalActivities == null) return;
+
+  const old = document.querySelector(".insights-box");
+  if (old) old.remove();
+
+  const box = document.createElement("div");
+  box.className = "insights-box";
+
+  box.innerHTML = `
+    <strong>Total aktiviteter:</strong> ${data.totalActivities}<br>
+    <strong>Indoor:</strong> ${data.indoorCount} (${data.indoorPercentage?.toFixed(1)}%)<br>
+    <strong>Outdoor:</strong> ${data.outdoorCount} (${data.outdoorPercentage?.toFixed(1)}%)
+  `;
+
+  list.parentElement.insertBefore(box, list);
+}
 /* Uppdatera även kartan vid ändring av fönsterstorlek (desktop → förhindra konstiga kollapser) */
 window.addEventListener("resize", () => {
   setTimeout(() => {
@@ -323,6 +345,10 @@ map.on('click', async function(e) {
 
     renderRecommendations(recs);
     renderMarkers(recs);
+
+    if (recs && recs.length > 0) {
+    renderInsights(recs[0]);
+    }
 
     const clickMarker = L.marker([lat, lon], {
       icon: L.icon({
