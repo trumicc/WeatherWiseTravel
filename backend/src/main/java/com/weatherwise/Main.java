@@ -1,5 +1,7 @@
 package com.weatherwise;
 
+import com.weatherwise.controllers.AuthController;
+import com.weatherwise.services.UserService;
 import com.weatherwise.models.Activity;
 import com.weatherwise.models.Recommendation;
 import com.weatherwise.models.Weather;
@@ -65,6 +67,11 @@ public class Main {
         app.get("/api/v1/activities", Main::handleActivities);
         app.get("/api/v1/recommendations", Main::handleRecommendations);
 
+         // ===== AUTH (login/register/me) =====
+        UserService userService = new UserService();
+        AuthController authController = new AuthController(userService);
+        authController.registerRoutes(app);
+        
         app.start(7000);
         System.out.println("Server started on port 7000");
     }
