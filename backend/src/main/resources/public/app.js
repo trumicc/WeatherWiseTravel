@@ -4,6 +4,21 @@ const searchBtn = document.getElementById("searchBtn");
 const list = document.getElementById("recommendationsList");
 const loading = document.getElementById("loading");
 
+// ===== AUTH elements =====
+const authOpenBtn = document.getElementById("authOpenBtn");
+const authModal = document.getElementById("authModal");
+const authCloseBtn = document.getElementById("authCloseBtn");
+const authTitle = document.getElementById("authTitle");
+
+const loginUsername = document.getElementById("loginUsername");
+const loginPassword = document.getElementById("loginPassword");
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
+const savePrefsBtn = document.getElementById("savePrefsBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const loginStatus = document.getElementById("loginStatus");
+const profileCategories = document.getElementById("profileCategories");
+
 if (!weatherInfo || !cityInput || !searchBtn || !list || !loading) {
   throw new Error("Missing required elements (weatherInfo/cityInput/searchBtn/loading/recommendationsList)");
 }
@@ -16,7 +31,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 let markersLayer = L.layerGroup().addTo(map);
 
-// Hämta valda kategorier från kryssrutor
+// Hämta valda kategorier från kryssrutor (med alert för sök)
 function getSelectedCategories() {
   const checkboxes = document.querySelectorAll('.categories input[type="checkbox"]:checked');
   const categories = Array.from(checkboxes).map(cb => cb.value);
@@ -25,6 +40,12 @@ function getSelectedCategories() {
     return;
   }
   return categories;
+}
+
+// version utan alert (bra för register/spara)
+function getSelectedCategoriesSafe() {
+  const boxes = document.querySelectorAll('.categories input[type="checkbox"]:checked');
+  return Array.from(boxes).map(cb => cb.value);
 }
 
 function setWeatherUI(city, weather) {
@@ -37,6 +58,249 @@ function setWeatherUI(city, weather) {
   cityEl.textContent = city;
   tempEl.textContent = `${Math.round(weather.temperature)}°C`;
   condEl.textContent = weather.description ?? "-";
+}
+
+/* ===== AUTH helpers ===== */
+function getToken(){ return localStorage.getItem("token"); }
+function setToken(t){ localStorage.setItem("token", t); }
+function clearToken(){ localStorage.removeItem("token"); }
+
+function openModal(){
+  if (authModal) authModal.style.display = "flex";
+}
+function closeModal(){
+  if (authModal) authModal.style.display = "none";
+}
+
+function setAuthMiniButton(loggedIn){
+  if (!authOpenBtn) return;
+  // När man är inloggad vill vi kunna öppna modalen för konto/preferenser.
+  // Texten kan vara LOGGA UT eller KONTO. Jag behåller din text, men funktionen ändras.
+  authOpenBtn.textContent = loggedIn ? "LOGGA UT" : "LOGIN";
+}
+
+function setSelectedCategories(categories) {
+  const wanted = new Set((categories || []).map(x => String(x).toLowerCase()));
+  const boxes = document.querySelectorAll('.categories input[type="checkbox"]');
+  boxes.forEach(cb => cb.checked = wanted.has(String(cb.value).toLowerCase()));
+}
+
+// Skapa kategorilistan i modalen baserat på din befintliga .categories
+function renderProfileCategoryListFromMain() {
+  if (!profileCategories) return;
+  profileCategories.innerHTML = "";
+
+  const mainBoxes = document.querySelectorAll('.categories input[type="checkbox"]');
+  mainBoxes.forEach(cb => {
+    const val = cb.value;
+    const labelText = cb.parentElement?.textContent?.trim() || val;
+
+    const label = document.createElement("label");
+    const modalCb = document.createElement("input");
+    modalCb.type = "checkbox";
+    modalCb.value = val;
+    modalCb.checked = cb.checked;
+
+    // modal -> main
+    modalCb.addEventListener("change", () => {
+      cb.checked = modalCb.checked;
+    });
+
+    // main -> modal
+    cb.addEventListener("change", () => {
+      modalCb.checked = cb.checked;
+    });
+
+    label.appendChild(modalCb);
+    label.appendChild(document.createTextNode(labelText));
+    profileCategories.appendChild(label);
+  });
+}
+
+/* ===== AUTH API calls ===== */
+async function apiRegister(username, password, preferredCategories) {
+  const res = await fetch("/api/v1/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, preferredCategories })
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+async function apiLogin(username, password) {
+  const res = await fetch("/api/v1/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json(); // { token, preferredCategories }
+}
+
+async function apiMe(token) {
+  const res = await fetch("/api/v1/auth/me", {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  if (!res.ok) return null;
+  return await res.json(); // { username, preferredCategories }
+}
+
+async function apiSavePreferences(token, preferredCategories) {
+  const res = await fetch("/api/v1/auth/preferences", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({ preferredCategories })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
+async function initAuth() {
+  renderProfileCategoryListFromMain();
+
+  const token = getToken();
+  if (!token) {
+    setAuthMiniButton(false);
+    if (savePrefsBtn) savePrefsBtn.style.display = "none";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (authTitle) authTitle.textContent = "LOGIN";
+    return;
+  }
+
+  const me = await apiMe(token);
+  if (!me) {
+    clearToken();
+    setAuthMiniButton(false);
+    return;
+  }
+
+  setSelectedCategories(me.preferredCategories);
+  setAuthMiniButton(true);
+
+  if (savePrefsBtn) savePrefsBtn.style.display = "inline-block";
+  if (logoutBtn) logoutBtn.style.display = "inline-block";
+  if (authTitle) authTitle.textContent = `Inloggad: ${me.username}`;
+}
+
+/* ===== AUTH events ===== */
+
+// ÄNDRING 1:
+// Mini-knappen ska INTE logga ut direkt om man redan är inloggad.
+// Den ska öppna modalen och visa kontot + spara preferenser.
+if (authOpenBtn) {
+  authOpenBtn.addEventListener("click", async () => {
+    openModal();
+
+    const token = getToken();
+    if (!token) {
+      if (authTitle) authTitle.textContent = "LOGIN";
+      if (savePrefsBtn) savePrefsBtn.style.display = "none";
+      if (logoutBtn) logoutBtn.style.display = "none";
+      return;
+    }
+
+    const me = await apiMe(token);
+    if (!me) {
+      clearToken();
+      setAuthMiniButton(false);
+      if (authTitle) authTitle.textContent = "LOGIN";
+      return;
+    }
+
+    if (authTitle) authTitle.textContent = `Inloggad: ${me.username}`;
+    if (savePrefsBtn) savePrefsBtn.style.display = "inline-block";
+    if (logoutBtn) logoutBtn.style.display = "inline-block";
+  });
+}
+
+if (authCloseBtn) authCloseBtn.addEventListener("click", closeModal);
+
+if (authModal) {
+  authModal.addEventListener("click", (e) => {
+    if (e.target === authModal) closeModal();
+  });
+}
+
+if (loginBtn) {
+  loginBtn.addEventListener("click", async () => {
+    try {
+      const u = loginUsername.value.trim();
+      const p = loginPassword.value;
+
+      const data = await apiLogin(u, p);
+      setToken(data.token);
+
+      setSelectedCategories(data.preferredCategories);
+      setAuthMiniButton(true);
+
+      if (savePrefsBtn) savePrefsBtn.style.display = "inline-block";
+      if (logoutBtn) logoutBtn.style.display = "inline-block";
+      if (authTitle) authTitle.textContent = `Inloggad: ${u}`;
+      if (loginStatus) loginStatus.textContent = "Inloggad";
+
+      closeModal();
+    } catch (err) {
+      if (loginStatus) loginStatus.textContent = `Fel: ${err.message}`;
+    }
+  });
+}
+
+if (registerBtn) {
+  registerBtn.addEventListener("click", async () => {
+    try {
+      const u = loginUsername.value.trim();
+      const p = loginPassword.value;
+      const preferred = getSelectedCategoriesSafe();
+
+      await apiRegister(u, p, preferred);
+      if (loginStatus) loginStatus.textContent = "Registrerad! Logga in nu.";
+    } catch (err) {
+      if (loginStatus) loginStatus.textContent = `Fel: ${err.message}`;
+    }
+  });
+}
+
+// ÄNDRING 2:
+// Efter sparning hämtar vi /me igen för att vara säkra på att UI matchar serverns sparade preferenser.
+if (savePrefsBtn) {
+  savePrefsBtn.addEventListener("click", async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        if (loginStatus) loginStatus.textContent = "Du är inte inloggad";
+        return;
+      }
+
+      const preferred = getSelectedCategoriesSafe();
+      await apiSavePreferences(token, preferred);
+
+      const me = await apiMe(token);
+      if (me) {
+        setSelectedCategories(me.preferredCategories);
+        if (authTitle) authTitle.textContent = `Inloggad: ${me.username}`;
+      }
+
+      if (loginStatus) loginStatus.textContent = "Preferenser sparade";
+      closeModal();
+    } catch (err) {
+      if (loginStatus) loginStatus.textContent = `Fel: ${err.message}`;
+    }
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    clearToken();
+    setAuthMiniButton(false);
+    if (loginStatus) loginStatus.textContent = "Utloggad";
+    if (savePrefsBtn) savePrefsBtn.style.display = "none";
+    if (logoutBtn) logoutBtn.style.display = "none";
+    if (authTitle) authTitle.textContent = "LOGIN";
+    closeModal();
+  });
 }
 
 /* enkla SVG ikoner */
@@ -70,15 +334,14 @@ function iconFor(categoryText) {
   `;
 
   if (c.includes("THEATER") || c.includes("THEATRE") || c.includes("TEATER")) return `
-  <svg viewBox="0 0 15 15" width="22" height="22" fill="currentColor" aria-hidden="true">
-    <path d="M2,1c0,0-1,0-1,1v5.1582C1,8.8885,1.354,11,4.5,11H5V8L2.5,9c0,0,0-2.5,2.5-2.5V5
-    c0-0.7078,0.0868-1.3209,0.5-1.7754C5.8815,2.805,6.5046,1.9674,8.1562,2.7539L9,3.3027V2c0,0,0-1-1-1C7.2922,1,6.0224,2,5,2
-    S2.7865,1,2,1z M3,3c0.5523,0,1,0.4477,1,1S3.5523,5,3,5S2,4.5523,2,4S2.4477,3,3,3z M7,4c0,0-1,0-1,1v5c0,2,1,4,4,4s4-2,4-4V5
-    c0-1-1-1-1-1c-0.7078,0-1.9776,1-3,1S7.7865,4,7,4z M8,6c0.5523,0,1,0.4477,1,1S8.5523,8,8,8S7,7.5523,7,7S7.4477,6,8,6z M12,6
-    c0.5523,0,1,0.4477,1,1s-0.4477,1-1,1s-1-0.4477-1-1S11.4477,6,12,6z M7.5,10H10h2.5c0,0,0,2.5-2.5,2.5S7.5,10,7.5,10z"/>
-  </svg>
-`;
-
+    <svg viewBox="0 0 15 15" width="22" height="22" fill="currentColor" aria-hidden="true">
+      <path d="M2,1c0,0-1,0-1,1v5.1582C1,8.8885,1.354,11,4.5,11H5V8L2.5,9c0,0,0-2.5,2.5-2.5V5
+      c0-0.7078,0.0868-1.3209,0.5-1.7754C5.8815,2.805,6.5046,1.9674,8.1562,2.7539L9,3.3027V2c0,0,0-1-1-1C7.2922,1,6.0224,2,5,2
+      S2.7865,1,2,1z M3,3c0.5523,0,1,0.4477,1,1S3.5523,5,3,5S2,4.5523,2,4S2.4477,3,3,3z M7,4c0,0-1,0-1,1v5c0,2,1,4,4,4s4-2,4-4V5
+      c0-1-1-1-1-1c-0.7078,0-1.9776,1-3,1S7.7865,4,7,4z M8,6c0.5523,0,1,0.4477,1,1S8.5523,8,8,8S7,7.5523,7,7S7.4477,6,8,6z M12,6
+      c0.5523,0,1,0.4477,1,1s-0.4477,1-1,1s-1-0.4477-1-1S11.4477,6,12,6z M7.5,10H10h2.5c0,0,0,2.5-2.5,2.5S7.5,10,7.5,10z"/>
+    </svg>
+  `;
 
   if (c.includes("SHOPPING") || c.includes("SHOP") || c.includes("STORE") || c.includes("MALL")) return `
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
@@ -88,12 +351,11 @@ function iconFor(categoryText) {
   `;
 
   if (c.includes("LIBRARY") || c.includes("BIBLIOTEK")) return `
-  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-    <path d="M4 19V6.2C4 5.0799 4 4.51984 4.21799 4.09202C4.40973 3.71569 4.71569 3.40973 5.09202 3.21799C5.51984 3 6.0799 3 7.2 3H16.8C17.9201 3 18.4802 3 18.908 3.21799C19.2843 3.40973 19.5903 3.71569 19.782 4.09202C20 4.51984 20 5.0799 20 6.2V17H6C4.89543 17 4 17.8954 4 19ZM4 19C4 20.1046 4.89543 21 6 21H20M9 7H15M9 11H15M19 17V21"
-      stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-`;
-
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M4 19V6.2C4 5.0799 4 4.51984 4.21799 4.09202C4.40973 3.71569 4.71569 3.40973 5.09202 3.21799C5.51984 3 6.0799 3 7.2 3H16.8C17.9201 3 18.4802 3 18.908 3.21799C19.2843 3.40973 19.5903 3.71569 19.782 4.09202C20 4.51984 20 5.0799 20 6.2V17H6C4.89543 17 4 17.8954 4 19ZM4 19C4 20.1046 4.89543 21 6 21H20M9 7H15M9 11H15M19 17V21"
+            stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
 
   if (c.includes("GYM") || c.includes("FITNESS")) return `
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
@@ -127,7 +389,6 @@ function iconFor(categoryText) {
   `;
 }
 
-
 function starIcon() {
   return `
     <svg class="score-star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -143,7 +404,6 @@ function variantClass(categoryText, index) {
   if (c.includes("CAFE") || c.includes("CAFÉ") || c.includes("COFFEE")) return "rec-orange";
   if (c.includes("PARK") || c.includes("NATURE")) return "rec-green";
 
-  
   if (c.includes("THEATER") || c.includes("THEATRE") || c.includes("TEATER")) return "rec-blue";
   if (c.includes("SHOPPING") || c.includes("SHOP") || c.includes("STORE") || c.includes("MALL")) return "rec-orange";
   if (c.includes("LIBRARY") || c.includes("BIBLIOTEK")) return "rec-green";
@@ -207,7 +467,7 @@ function renderMarkers(recs) {
     const a = r.activity || {};
     if (a.latitude && a.longitude) {
       const marker = L.marker([a.latitude, a.longitude]).bindPopup(
-          `<b>${escapeHtml(a.name || "")}</b><br>${escapeHtml(a.category || a.type || "")}<br>Score: ${Math.round(r.score)}`
+        `<b>${escapeHtml(a.name || "")}</b><br>${escapeHtml(a.category || a.type || "")}<br>Score: ${Math.round(r.score)}`
       );
       markersLayer.addLayer(marker);
     }
@@ -282,11 +542,11 @@ cityInput.addEventListener("keydown", (e) => {
 
 function escapeHtml(str) {
   return String(str)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 function renderInsights(data) {
 
@@ -307,6 +567,7 @@ function renderInsights(data) {
   list.parentElement.insertBefore(box, list);
 }
 /* Uppdatera även kartan vid ändring av fönsterstorlek (desktop → förhindra konstiga kollapser) */
+/* Uppdatera även kartan vid ändring av fönsterstorlek */
 window.addEventListener("resize", () => {
   setTimeout(() => {
     map.invalidateSize(true);
@@ -360,7 +621,7 @@ map.on('click', async function(e) {
         shadowSize: [41, 41]
       })
     }).addTo(map).bindPopup('Du klickade här!').openPopup();
-    
+
     setTimeout(() => {
       map.removeLayer(clickMarker);
     }, 3000);
@@ -376,3 +637,5 @@ map.on('click', async function(e) {
     loading.style.display = "none";
   }
 });
+
+initAuth();

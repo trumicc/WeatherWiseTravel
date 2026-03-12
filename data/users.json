@@ -1,0 +1,16 @@
+[ {
+  "username" : "123admin",
+  "password" : "admiin",
+  "preferredCategories" : [ "museum" ],
+  "token" : "a92fd050-4f73-41d4-a42e-4f2c7688901d"
+}, {
+  "username" : "nikola",
+  "password" : "admin123",
+  "preferredCategories" : [ "museum" ],
+  "token" : "2c8c2105-2412-4bbe-907d-9cc6eb0705e1"
+}, {
+  "username" : "Adam",
+  "password" : "admin123",
+  "preferredCategories" : [ "museum", "cafe" ],
+  "token" : "940b0aad-d6ae-4d9e-bf27-d80bc3b3591b"
+} ]
