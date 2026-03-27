@@ -32,8 +32,8 @@ body{
   font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
 
   /* Bakgrundsbild */
-  background: url("sol.jpg") no-repeat center/cover;
-
+  background: url("sol.jpg") no-repeat center center fixed;
+  background-size: cover;
   /* Animation */
   animation: moveBg 30s linear infinite;
 
