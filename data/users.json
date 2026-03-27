@@ -13,4 +13,9 @@
   "password" : "admin123",
   "preferredCategories" : [ "museum", "cafe" ],
   "token" : "940b0aad-d6ae-4d9e-bf27-d80bc3b3591b"
+}, {
+  "username" : "alexradic242@gmail.com",
+  "password" : "alex123",
+  "preferredCategories" : [ "museum", "cafe", "park", "theatre", "cinema", "library", "mall", "beach" ],
+  "token" : "d52137dd-21b6-482f-8820-43d3528ed257"
 } ]

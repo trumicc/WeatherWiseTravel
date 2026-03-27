@@ -72,15 +72,15 @@ body{
   margin: 18px auto 28px;
   padding: 0 18px;
 }
-
-.app-card{
-  background: rgba(255,255,255,.65);
-  border: 1px solid rgba(255,255,255,.8);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+/* Huvudkort: ljusblå bakgrund, blur-effekt och starkare skugga för djup */
+.app-card{  
+  background: rgba(67, 192, 245, 0.687);  
+  backdrop-filter: blur(14px);  
+  border: 1px solid rgba(67, 192, 245, 0.687); 
+  border-radius: var(--radius-xl);  
+  box-shadow: 0 20px 40px  rgba(0, 9, 13, 0.55); 
+  overflow: hidden;  
 }
-
 /* väderlinje */
 .weather-line{
   padding: 12px 14px;
@@ -126,14 +126,22 @@ body{
   align-items: center;
 }
 
+/* Login-knapp */
 .auth-mini button{
-  border: 0;
-  border-radius: 14px;
-  background: rgba(139,124,246,.85);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+
+  border: 1px solid rgba(17,24,39,.05);
+
+  background: linear-gradient(135deg, #8b7cf6, #7ad7f0);
+
   color: #fff;
   font-weight: 900;
+  font-size: 14px;
+
   cursor: pointer;
-  padding: 12px 16px;
+
+  transition: all 0.2s ease;
 }
 
 
@@ -169,34 +177,42 @@ body{
   min-width: 0; /*VIKTIGT*/
 }
 
+
 .search-row{
   display: grid;
   grid-template-columns: 1fr 110px;
   gap: 12px;
 }
 
+/* Sökfält: ljusare bakgrund och mjukare design */
 .search-row input{
   padding: 12px 14px;
   border-radius: var(--radius-md);
   border: 1px solid rgba(17,24,39,.12);
-  background: rgba(255,255,255,.9);
-  outline: none;
+  background: rgba(255,255,255,.95);
   font-size: 14px;
+  transition: all 0.2s ease;
 }
 
+/* Fokus: blå glow-effekt för tydlig interaktion */
 .search-row input:focus{
-  border-color: rgba(139,124,246,.55);
-  box-shadow: 0 0 0 4px rgba(139,124,246,.16);
+  border-color: rgba(139,124,246,.7);
+  box-shadow: 0 0 0 4px rgba(139,124,246,.18);
 }
 
+/* Sökknapp: gradient och tydlig stil */
 .search-row button{
-  border: 0;
   border-radius: var(--radius-md);
-  background: rgba(139,124,246,.85);
+  background: linear-gradient(135deg, #8b7cf6, #7ad7f0);
   color: #fff;
-  font-weight: 800;
+  font-weight: 900;
   cursor: pointer;
-  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+/* Hover: liten förstoring vid interaktion */
+.search-row button:hover{
+  transform: scale(1.05);
 }
 
 .loading{
@@ -308,14 +324,15 @@ body{
   text-transform: uppercase;
 }
 
+/* Statistikruta: tydligare kant och skugga för att sticka ut */
 .insights-box {
   background: rgba(255,255,255,.95);
   padding: 14px 16px;
   border-radius: 16px;
-  border: 1px solid rgba(17,24,39,.08);
+  border: 1px solid rgba(17,24,39,.99);
   font-weight: 700;
   margin-bottom: 14px;
-  box-shadow: 0 6px 14px rgba(17,24,39,.08);
+  box-shadow: 0 6px 14px rgba(17,24,39,.25);
 }
 
 /* responsivt: stapla i stället för att dölja kartan */

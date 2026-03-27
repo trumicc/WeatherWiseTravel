@@ -1,34 +1,40 @@
+// Hämta viktiga DOM-element som används i applikationen
 const weatherInfo = document.getElementById("weatherInfo");
 const cityInput = document.getElementById("cityInput");
 const searchBtn = document.getElementById("searchBtn");
 const list = document.getElementById("recommendationsList");
 const loading = document.getElementById("loading");
 
-// ===== AUTH elements =====
+// Autentiseringsrelaterade element
 const authOpenBtn = document.getElementById("authOpenBtn");
 const authModal = document.getElementById("authModal");
 const authCloseBtn = document.getElementById("authCloseBtn");
 const authTitle = document.getElementById("authTitle");
 
-const loginUsername = document.getElementById("loginUsername");
-const loginPassword = document.getElementById("loginPassword");
-const loginBtn = document.getElementById("loginBtn");
-const registerBtn = document.getElementById("registerBtn");
-const savePrefsBtn = document.getElementById("savePrefsBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const loginStatus = document.getElementById("loginStatus");
+const loginUsername = document.getElementById("loginUsername"); 
+const loginPassword = document.getElementById("loginPassword"); 
+const loginBtn = document.getElementById("loginBtn"); 
+const registerBtn = document.getElementById("registerBtn"); 
+const savePrefsBtn = document.getElementById("savePrefsBtn"); 
+const logoutBtn = document.getElementById("logoutBtn"); 
+const loginStatus = document.getElementById("loginStatus"); 
 const profileCategories = document.getElementById("profileCategories");
 
+// Säkerställ att nödvändiga element finns innan appen körs
 if (!weatherInfo || !cityInput || !searchBtn || !list || !loading) {
   throw new Error("Missing required elements (weatherInfo/cityInput/searchBtn/loading/recommendationsList)");
 }
 
-/* ---------- Leaflet karta ---------- */
+/* ---------- Initiera karta ---------- */
+// Startposition (Stockholm)
 const map = L.map("map").setView([59.3293, 18.0686], 12);
+
+// Ladda kartlager från OpenStreetMap
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
 
+// Lager för att hantera markörer dynamiskt
 let markersLayer = L.layerGroup().addTo(map);
 
 // Hämta valda kategorier från kryssrutor (med alert för sök)
@@ -74,7 +80,7 @@ function closeModal(){
 
 function setAuthMiniButton(loggedIn){
   if (!authOpenBtn) return;
-  // När man är inloggad vill vi kunna öppna modalen för konto/preferenser.
+
   // Texten kan vara LOGGA UT eller KONTO. Jag behåller din text, men funktionen ändras.
   authOpenBtn.textContent = loggedIn ? "LOGGA UT" : "LOGIN";
 }
@@ -397,9 +403,11 @@ function starIcon() {
   `;
 }
 
+// Bestämmer vilken färgklass ett kort ska ha baserat på kategori
 function variantClass(categoryText, index) {
   const c = (categoryText || "").toUpperCase();
 
+  // Matchar olika kategorier till specifika färger
   if (c.includes("MUSEUM")) return "rec-blue";
   if (c.includes("CAFE") || c.includes("CAFÉ") || c.includes("COFFEE")) return "rec-orange";
   if (c.includes("PARK") || c.includes("NATURE")) return "rec-green";
@@ -411,13 +419,16 @@ function variantClass(categoryText, index) {
   if (c.includes("RESTAURANT") || c.includes("RESTURANG") || c.includes("FOOD") || c.includes("EAT")) return "rec-green";
   if (c.includes("CINEMA") || c.includes("MOVIE") || c.includes("BIO") || c.includes("FILM")) return "rec-blue";
 
+  
   return ["rec-blue", "rec-orange", "rec-green"][index % 3];
 }
 
+// Avgör om en aktivitet är inomhus eller utomhus
 function indoorOutdoor(activity) {
   if (typeof activity.indoor === "boolean") return activity.indoor ? "Indoor" : "Outdoor";
   if (typeof activity.isIndoor === "boolean") return activity.isIndoor ? "Indoor" : "Outdoor";
 
+  // Fallback om typen anges som text
   if (activity.type) {
     const t = String(activity.type).toUpperCase();
     if (t.includes("INDOOR")) return "Indoor";
@@ -425,6 +436,7 @@ function indoorOutdoor(activity) {
   }
   return "";
 }
+
 
 function renderRecommendations(recs) {
   list.innerHTML = "";
@@ -434,11 +446,15 @@ function renderRecommendations(recs) {
     const name = a.name || "Aktivitet";
     const category = a.category || a.type || "Kategori";
     const io = indoorOutdoor(a);
+
+    
     const score = Number.isFinite(r.score) ? Math.round(r.score) : r.score;
 
+    
     const card = document.createElement("div");
     card.className = `rec-card ${variantClass(category, i)}`;
 
+    
     card.innerHTML = `
       <div class="row1">
         <div class="rec-title">
@@ -460,30 +476,37 @@ function renderRecommendations(recs) {
   });
 }
 
+// Renderar markörer på kartan baserat på aktiviteter
 function renderMarkers(recs) {
+  // Rensar tidigare markörer
   markersLayer.clearLayers();
 
   recs.forEach((r) => {
     const a = r.activity || {};
+
+    // Kontrollera att koordinater finns
     if (a.latitude && a.longitude) {
       const marker = L.marker([a.latitude, a.longitude]).bindPopup(
         `<b>${escapeHtml(a.name || "")}</b><br>${escapeHtml(a.category || a.type || "")}<br>Score: ${Math.round(r.score)}`
       );
+
       markersLayer.addLayer(marker);
     }
   });
 
+  // Zooma till första giltiga resultatet
   const first = recs.find(rr => rr.activity && rr.activity.latitude && rr.activity.longitude);
   if (first) map.setView([first.activity.latitude, first.activity.longitude], 12);
 }
 
-
+// Hämtar väderdata från backend
 async function fetchWeather(city) {
   const res = await fetch(`/api/v1/weather/${encodeURIComponent(city)}`);
   if (!res.ok) throw new Error("Kunde inte hämta väder");
   return await res.json();
 }
 
+// Hämtar rekommendationer baserat på stad och valda kategorier
 async function fetchRecommendations(city) {
   const categories = getSelectedCategories();
   if (!categories) return null;
@@ -494,27 +517,33 @@ async function fetchRecommendations(city) {
   return await res.json();
 }
 
+// Huvudfunktion som körs vid sökning av stad
 async function loadCity(city) {
   loading.style.display = "block";
   list.innerHTML = "";
 
   try {
+    // Hämta och visa väder
     const weather = await fetchWeather(city);
     setWeatherUI(city, weather);
 
+    // Hämta rekommendationer
     const recs = await fetchRecommendations(city);
 
+    // Om inga resultat finns, avsluta
     if (!recs || recs.length === 0) {
       loading.style.display = "none";
       return;
     }
 
+    // Rendera UI
     renderRecommendations(recs);
     renderMarkers(recs);
 
-    // ✅ VISA STATISTIK
+    // Visa statistik (finns i första objektet)
     renderInsights(recs[0]);
 
+    // Uppdatera kartans layout
     setTimeout(() => {
       map.invalidateSize(true);
     }, 50);
@@ -527,12 +556,14 @@ async function loadCity(city) {
   }
 }
 
+// Event: klick på sökknapp
 searchBtn.addEventListener("click", () => {
   const city = cityInput.value.trim();
   if (!city) return;
   loadCity(city);
 });
 
+// Event: tryck på Enter i inputfält
 cityInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
@@ -540,6 +571,7 @@ cityInput.addEventListener("keydown", (e) => {
   }
 });
 
+// Skyddar mot XSS genom att escapa HTML
 function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -548,10 +580,13 @@ function escapeHtml(str) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+// Renderar statistik om aktiviteter
 function renderInsights(data) {
 
   if (!data || data.totalActivities == null) return;
 
+  // Ta bort tidigare statistik
   const old = document.querySelector(".insights-box");
   if (old) old.remove();
 
@@ -564,6 +599,7 @@ function renderInsights(data) {
     <strong>Outdoor:</strong> ${data.outdoorCount} (${data.outdoorPercentage?.toFixed(1)}%)
   `;
 
+  // Lägg till statistiken ovanför listan
   list.parentElement.insertBefore(box, list);
 }
 /* Uppdatera även kartan vid ändring av fönsterstorlek (desktop → förhindra konstiga kollapser) */
