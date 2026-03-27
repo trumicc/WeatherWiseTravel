@@ -27,11 +27,32 @@
 html, body { height: 100%; }
 
 body{
+
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-  background: var(--bg);
+
+  /* Bakgrundsbild */
+  background: url("sol.jpg") no-repeat center/cover;
+
+  /* Animation */
+  animation: moveBg 30s linear infinite;
+
   color: var(--ink);
 }
+
+/* Animation som rör bilden */
+@keyframes moveBg {
+  0% {
+    background-position: center top;
+  }
+  50% {
+    background-position: center bottom;
+  }
+  100% {
+    background-position: center top;
+  }
+}
+
 
 /*topprad */
 .topbar{
